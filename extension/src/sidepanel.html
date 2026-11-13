@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Tabletidy</title>
+  <link rel="stylesheet" href="./sidepanel.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="logo" aria-hidden="true"></span>Tabletidy</div>
+    <span id="nano" class="pill" title="Gemini Nano status in this browser">Checking Nano…</span>
+  </header>
+
+  <section class="card" id="step-scan">
+    <h2><span class="num">1</span>Pick a table</h2>
+    <button id="scan" class="btn primary">Scan this page</button>
+    <p id="scan-msg" class="muted small"></p>
+    <ul id="tables" class="tables"></ul>
+  </section>
+
+  <section class="card" id="step-tidy" hidden>
+    <h2><span class="num">2</span>Tidy columns</h2>
+    <div class="seg" role="radiogroup" aria-label="Where the AI runs">
+      <label><input type="radio" name="pref" value="auto" checked /><span>Auto</span></label>
+      <label><input type="radio" name="pref" value="device" /><span>On device only</span></label>
+      <label><input type="radio" name="pref" value="cloud" /><span>Cloud</span></label>
+    </div>
+    <p class="rule"><b>Privacy rule:</b> personal-data columns are found and masked on this device before any request that can reach the cloud. <i>On device only</i> never sends table data anywhere.</p>
+    <button id="tidy" class="btn primary">Tidy columns</button>
+    <p id="tidy-msg" class="muted small"></p>
+  </section>
+
+  <section class="card" id="step-result" hidden>
+    <div class="runline">
+      <span id="badge" class="badge"></span>
+      <span id="runinfo" class="muted small"></span>
+    </div>
+    <h3 id="title" class="title"></h3>
+    <ol id="cols" class="cols"></ol>
+    <details class="sent"><summary>What the model saw</summary><pre id="sent"></pre></details>
+    <div class="preview-wrap"><table id="preview" class="preview"></table></div>
+  </section>
+
+  <section class="card" id="step-export" hidden>
+    <h2><span class="num">3</span>Export</h2>
+    <label class="check"><input type="checkbox" id="clean" checked /> Clean values (numbers, ISO dates)</label>
+    <label class="check"><input type="checkbox" id="droppii" checked /> Leave out personal-data columns</label>
+    <div class="row">
+      <button id="csv" class="btn">CSV</button>
+      <button id="json" class="btn">JSON</button>
+      <button id="copy" class="btn ghost">Copy for Sheets</button>
+    </div>
+    <p id="export-msg" class="muted small"></p>
+  </section>
+
+  <details class="settings">
+    <summary>Settings</summary>
+    <label class="small">App Check debug token (needed for the cloud model only)
+      <input id="token" type="password" autocomplete="off" placeholder="paste token, stored in this browser only" />
+    </label>
+    <button id="save-token" class="btn ghost small">Save</button>
+    <p class="muted small">Cloud runs use Gemini through Firebase AI Logic. On-device runs use Gemini Nano built into Chrome.</p>
+  </details>
+
+  <script type="module" src="./sidepanel.js"></script>
+</body>
+</html>

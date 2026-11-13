@@ -1,19 +1,22 @@
 {
   "name": "tabletidy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Tabletidy: scrape web tables and clean them with hybrid AI (Gemini Nano on-device, Gemini in the cloud) via Firebase AI Logic.",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
     "dev": "vite web --port 5173 --strictPort",
-    "build": "vite build web --outDir ../dist-web --emptyOutDir"
+    "build": "vite build web --outDir ../dist-web --emptyOutDir",
+    "build:ext": "vite build --config extension/vite.config.js && vite build --config extension/vite.content.config.js",
+    "test": "node --test extension/tests/*.test.mjs"
   },
   "dependencies": {
     "firebase": "^13.3.0"
   },
   "devDependencies": {
     "@rolldown/binding-wasm32-wasi": "^1.3.2",
-    "vite": "^8.3.8"
+    "vite": "^8.3.8",
+    "linkedom": "^0.18.13"
   }
 }

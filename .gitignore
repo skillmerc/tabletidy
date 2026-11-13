@@ -7,3 +7,6 @@ firebase-config.txt
 *.log
 .DS_Store
 HANDOFF.md
+extension/dist/
+*.pem
+extension-pubkey.txt

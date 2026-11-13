@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Tabletidy: private table cleanup with hybrid AI",
+  "short_name": "Tabletidy",
+  "version": "0.2.0",
+  "description": "Pick a table on any page. Gemini Nano names and types its columns on your device and flags personal data. Export clean CSV or JSON.",
+  "minimum_chrome_version": "139",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0zdXx/k9DTLvDtCSl7B7yQj5Y4B1GuM2IJbC3KoUSHRXxlYOVK+2zi6IyUmjzaQATnY8BI0THpkR2BUZTMKMvW3hK+NiEeT8Jp0yrvk9b/7IIlqZYPSQKZ8jRDUfO3GJFtp2uIHs53oQdjUuolddvi+mWTk6MzEthUhm/xQyB4cdTUx15E2E4ox0zgaO6g8KXJKqvkhvhWqgRfPSOwqOgWpG8G8BhK1bZMfX8XDl22X1HZWXLo1xkfqXjbl5jRxy9QxNRhbUrAOyq/5JTfdQCLNxq1A4vWs4yYeTnhSEhiCtm+acj+u4rlVj3dpc11/x2qRFe60HQpiyIhQgHrY5lQIDAQAB",
+  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "action": { "default_title": "Open Tabletidy", "default_icon": { "16": "icons/icon16.png", "48": "icons/icon48.png" } },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "permissions": ["activeTab", "scripting", "sidePanel", "storage"]
+}
