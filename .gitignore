@@ -1,0 +1,9 @@
+node_modules/
+dist-web/
+.env
+.env.*
+!.env.example
+firebase-config.txt
+*.log
+.DS_Store
+HANDOFF.md

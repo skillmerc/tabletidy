@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tabletidy - hybrid AI smoke test</title>
+  <style>
+    body { font: 15px/1.5 system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 16px; color: #1d1d1f; }
+    textarea { width: 100%; min-height: 140px; font: 13px ui-monospace, monospace; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-weight: 600; font-size: 12px; }
+    .ON_DEVICE { background: #d9f7e5; color: #11663a; } .IN_CLOUD { background: #dde9ff; color: #1b4fb3; }
+    pre { background: #f5f5f7; padding: 12px; white-space: pre-wrap; }
+    button, select { font: inherit; padding: 6px 12px; }
+  </style>
+</head>
+<body>
+  <h1>Tabletidy hybrid AI smoke test</h1>
+  <p>Paste table rows (CSV). The model proposes a name and type for each column. Runs on Gemini Nano in Chrome when available, otherwise Gemini in the cloud through Firebase AI Logic.</p>
+  <label>Mode
+    <select id="mode">
+      <option value="prefer_on_device">Prefer on device</option>
+      <option value="only_on_device">Only on device (strict privacy)</option>
+      <option value="prefer_in_cloud">Prefer cloud</option>
+      <option value="only_in_cloud">Only cloud</option>
+    </select>
+  </label>
+  <p><textarea id="input">,,
+Cape Town,"R 1 234,50",2026/11/03
+Durban,"R 899,00",03 Nov 2026
+Johannesburg,"R 12 000,00",2026-11-04</textarea></p>
+  <button id="run">Name and type columns</button>
+  <span id="source"></span>
+  <p id="status"></p>
+  <pre id="out"></pre>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
