@@ -9,7 +9,8 @@
     "dev": "vite web --port 5173 --strictPort",
     "build": "vite build web --outDir ../dist-web --emptyOutDir",
     "build:ext": "vite build --config extension/vite.config.js && vite build --config extension/vite.content.config.js",
-    "test": "node --test extension/tests/*.test.mjs"
+    "test": "node --test extension/tests/*.test.mjs",
+    "build:ext:nobundler": "node extension/build-nobundler.mjs"
   },
   "dependencies": {
     "firebase": "^13.3.0"

@@ -42,7 +42,7 @@ Requirements: Node 20+, desktop Google Chrome 139 or newer.
 
 1. **Firebase project** (free Spark plan): create a project, add a Web app, open *AI Logic* and choose the Gemini Developer API. In *App Check*, register the web app and add a debug token.
 2. **Config**: `cp .env.example web/.env.local` and fill in the web app config. `VITE_APPCHECK_DEBUG_TOKEN` is optional; you can paste the debug token into the extension's Settings instead.
-3. **Build**: `npm install`, then `npm run build:ext` (outputs `extension/dist`). Run `npm test` for the unit tests.
+3. **Build**: `npm install`, then `npm run build:ext` (outputs `extension/dist`). If your environment cannot run the bundler, run `npm run dev` once and then `npm run build:ext:nobundler` (vendors the pre-bundled Firebase ESM files). Run `npm test` for the unit tests.
 4. **Load**: `chrome://extensions` -> Developer mode -> *Load unpacked* -> `extension/dist`. Pin Tabletidy and click it on any page with a table.
 5. **Gemini Nano**: check `chrome://on-device-internals` (or `await LanguageModel.availability()` in DevTools). If it says `downloadable`, the first *Tidy columns* click starts the download; until it finishes, Auto mode falls back to the cloud and the badge says so.
 
