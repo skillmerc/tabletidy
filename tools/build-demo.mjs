@@ -71,47 +71,65 @@ const html = `<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tabletidy demo: sample tables to tidy</title>
-<meta name="description" content="Sample tables for trying Tabletidy, a Chrome extension that cleans web tables with hybrid AI: Gemini Nano on device, Gemini in the cloud through Firebase AI Logic.">
+<title>Tabletidy: clean any table with hybrid AI, in your browser</title>
+<meta name="description" content="Paste a table or pick a sample. Tabletidy names and types the columns, flags personal data and exports clean CSV or JSON. Gemini Nano on device, Gemini in the cloud through Firebase AI Logic.">
 <link rel="icon" href="icon.png">
+<link rel="stylesheet" href="app/ui.css">
 <style>
-:root { --ink:#17201f; --muted:#5d6b69; --line:#e3e8e7; --bg:#f6f8f7; --card:#fff; --brand:#0f766e; --brand-soft:#e3f3f1; --cloud:#3156c9; --cloud-soft:#e7edfc; --warn:#a24b0c; --warn-soft:#fdf0e4; }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
 body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
-.wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
 header.site { background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
-header.site .wrap { display:flex; align-items:center; justify-content:space-between; height:56px; }
+header.site .wrap { display:flex; align-items:center; justify-content:space-between; height:56px; gap:12px; }
 .brand { font-weight:700; font-size:18px; display:flex; align-items:center; gap:10px; letter-spacing:-.01em; }
-.logo { width:22px; height:22px; border-radius:6px; background:
+.logo { width:22px; height:22px; border-radius:6px; flex:none; background:
   linear-gradient(#fff 0 0) 5px 6px / 12px 2px no-repeat, linear-gradient(#fff 0 0) 5px 10px / 12px 2px no-repeat,
   linear-gradient(#fff 0 0) 5px 14px / 7px 2px no-repeat, var(--brand); }
-nav a { text-decoration:none; font-size:14px; margin-left:20px; }
+nav { display:flex; gap:20px; }
+nav a { text-decoration:none; font-size:14px; color:var(--muted); white-space:nowrap; }
 nav a:hover { color:var(--brand); }
-.hero { padding:56px 0 28px; }
-.hero h1 { font-size:clamp(30px,5vw,44px); line-height:1.12; letter-spacing:-.025em; margin:0 0 20px; max-width:17em; }
-.hero ul { list-style:none; padding:0; margin:0 0 26px; max-width:44em; display:grid; gap:8px; color:#33403e; }
-.hero li { padding-left:26px; position:relative; }
-.hero li::before { content:""; position:absolute; left:2px; top:.55em; width:10px; height:10px; border-radius:3px; background:var(--brand); }
-.cta { display:flex; flex-wrap:wrap; gap:12px; }
-.btn { display:inline-block; padding:11px 18px; border-radius:10px; font-weight:600; text-decoration:none; border:1px solid var(--line); background:var(--card); color:var(--ink); }
-.btn.primary { background:var(--brand); border-color:var(--brand); color:#fff; }
-.badge { display:inline-block; font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; vertical-align:middle; }
-.badge.device { background:var(--brand-soft); color:var(--brand); }
-.badge.cloud { background:var(--cloud-soft); color:var(--cloud); }
-.badge.pii { background:var(--warn-soft); color:var(--warn); }
-section { padding:26px 0; }
-h2 { font-size:22px; letter-spacing:-.015em; margin:0 0 6px; display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
-p.lede { margin:0 0 16px; color:var(--muted); max-width:46em; }
-.card { background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
-.scroll { max-height:420px; overflow:auto; }
-table { border-collapse:collapse; width:100%; font-size:14px; }
-th, td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
-th { background:#fafcfb; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); position:sticky; top:0; }
-tbody tr:last-child td { border-bottom:0; }
-tbody tr:hover td { background:#fafcfb; }
+.hero { padding:40px 0 20px; }
+.hero h1 { font-size:clamp(28px,4.6vw,42px); line-height:1.12; letter-spacing:-.025em; margin:0 0 12px; max-width:20em; }
+.hero p { margin:0; max-width:46em; color:#33403e; font-size:17px; }
+.facts { display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 0; padding:0; list-style:none; }
+.facts li { font-size:13px; font-weight:600; padding:4px 12px; border-radius:999px; }
+.facts .device { background:var(--brand-soft); color:var(--brand); }
+.facts .cloud { background:var(--cloud-soft); color:var(--cloud); }
+.facts .pii { background:var(--warn-soft); color:var(--warn); }
+main > section { padding:24px 0; }
+main h2.sec { font-size:22px; letter-spacing:-.015em; margin:0 0 6px; display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+p.lede { margin:0 0 16px; color:var(--muted); max-width:48em; }
+.tag { display:inline-block; font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; vertical-align:middle; }
+.tag.device { background:var(--brand-soft); color:var(--brand); }
+.tag.cloud { background:var(--cloud-soft); color:var(--cloud); }
+.tag.pii { background:var(--warn-soft); color:var(--warn); }
+/* Playground */
+.play { display:grid; grid-template-columns:minmax(0, 380px) minmax(0, 1fr); gap:16px; align-items:start; }
+.samples { display:grid; gap:8px; }
+.samples button { font:inherit; text-align:left; width:100%; background:var(--bg); border:1px solid transparent; border-radius:10px; padding:10px 12px; cursor:pointer; color:var(--ink); display:grid; gap:2px; }
+.samples button:hover { border-color:#b9c4c2; }
+.samples button[aria-pressed="true"] { border-color:var(--brand); background:var(--brand-soft); }
+.samples b { font-weight:600; }
+.samples span { font-size:12px; color:var(--muted); }
+.or { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; margin:14px 0 10px; }
+.or::before, .or::after { content:""; flex:1; height:1px; background:var(--line); }
+#paste { width:100%; min-height:120px; resize:vertical; font:12px/1.5 ui-monospace,Menlo,monospace; border:1px solid var(--line); border-radius:8px; padding:10px; background:var(--card); color:var(--ink); }
+#paste-msg.bad { color:var(--err); }
+/* Sample tables */
+.sheet { background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:auto; }
+.sheet.scroll { max-height:420px; }
+.sheet table { border-collapse:collapse; width:100%; font-size:14px; }
+.sheet th, .sheet td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
+.sheet th { background:#fafcfb; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); position:sticky; top:0; }
+.sheet tbody tr:last-child td { border-bottom:0; }
+.panel { background:var(--card); border:1px solid var(--line); border-radius:14px; }
 ol.steps { margin:0; padding:18px 22px 18px 42px; display:grid; gap:8px; }
-ol.steps code, p code { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:1px 6px; font-size:.9em; }
+code { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:1px 6px; font-size:.9em; }
+.how { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; }
+.how div { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+.how h3 { margin:0 0 6px; font-size:16px; }
+.how p { margin:0; font-size:14px; color:var(--muted); }
 .listing { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; }
 .event { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
 .event h3 { margin:0 0 8px; font-size:16px; line-height:1.3; }
@@ -119,69 +137,103 @@ ol.steps code, p code { background:var(--bg); border:1px solid var(--line); bord
 .event .price { color:var(--ink); font-weight:600; margin-top:8px; }
 footer { padding:36px 0 56px; color:var(--muted); font-size:14px; }
 a { color:var(--brand); }
-nav a { color:var(--muted); }
+@media (max-width: 860px) {
+  .play, .how { grid-template-columns:minmax(0,1fr); }
+  .wrap { padding:0 14px; }
+  nav a.wide { display:none; }
+  .hero { padding:26px 0 12px; }
+}
 </style>
 </head>
 <body>
 <header class="site"><div class="wrap">
   <div class="brand"><span class="logo"></span>Tabletidy</div>
-  <nav><a href="#install">Install</a><a href="#contacts">Sample tables</a><a href="https://github.com/skillmerc/tabletidy">GitHub</a></nav>
+  <nav><a href="#try">Try it</a><a class="wide" href="#how">How it works</a><a class="wide" href="#contacts">Sample tables</a><a class="wide" href="#install">Extension</a><a href="https://github.com/skillmerc/tabletidy">GitHub</a></nav>
 </div></header>
 
 <main class="wrap">
 <div class="hero">
-  <h1>Pick a table on any web page. Get a clean spreadsheet.</h1>
-  <ul>
-    <li>Tabletidy is a Chrome extension that finds the tables and repeated lists on a page and lets you pick one.</li>
-    <li>Gemini Nano names and types the columns on your device. Nothing is uploaded for small tables.</li>
-    <li>Large tables go to Gemini in the cloud through Firebase AI Logic, with personal-data columns masked before the request is built.</li>
-    <li>Every run shows an On device or Cloud badge with the reason, then exports CSV or JSON with real numbers and ISO dates.</li>
-  </ul>
-  <div class="cta"><a class="btn primary" href="#install">Install and try it on this page</a><a class="btn" href="https://github.com/skillmerc/tabletidy">Source on GitHub</a></div>
+  <h1>Turn a messy table into a clean spreadsheet, without leaking the personal data in it.</h1>
+  <p>Pick a sample or paste your own table. Tabletidy names and types the columns, flags personal data and exports clean CSV or JSON. It runs right here in the page, no install and no account.</p>
+  <ul class="facts"><li class="device">Small tables: Gemini Nano on your device</li><li class="cloud">Large tables: Gemini in the cloud</li><li class="pii">Personal data masked before any cloud request</li></ul>
 </div>
 
-<section id="install">
-  <h2>Install (about 3 minutes)</h2>
-  <p class="lede">Tabletidy is loaded as an unpacked extension in desktop Google Chrome 139 or newer. Full setup, including your own free Firebase project, is in the <a href="https://github.com/skillmerc/tabletidy#setup-under-10-minutes">README</a>.</p>
-  <div class="card"><ol class="steps">
-    <li>Clone <a href="https://github.com/skillmerc/tabletidy">github.com/skillmerc/tabletidy</a>, add your Firebase web config, then run <code>npm install</code> and <code>npm run build:ext</code>.</li>
-    <li>Open <code>chrome://extensions</code>, turn on Developer mode, click <em>Load unpacked</em> and choose <code>extension/dist</code>.</li>
-    <li>Come back to this page, click the Tabletidy toolbar button and press <em>Scan this page</em>.</li>
-    <li>Pick a table below, press <em>Tidy columns</em>, check the badge, then export CSV or JSON.</li>
-  </ol></div>
+<section id="try">
+  <h2 class="sec">Try it now</h2>
+  <p class="lede">Every run shows where it ran and why. If the on-device model is missing or gives a bad answer, the run falls back to the cloud and says so.</p>
+  <div class="play">
+    <div class="tt tt-box">
+      <section class="card">
+        <h2><span class="num">1</span>Pick a table</h2>
+        <div class="samples" id="samples">
+          <button data-sample="orders" data-label="Customer orders" aria-pressed="false"><b>Customer orders</b><span>12 rows × 6 columns · names, emails and phone numbers</span></button>
+          <button data-sample="pricelist" data-label="Price list" aria-pressed="false"><b>Price list</b><span>10 rows × 6 columns · cryptic headers, rand prices</span></button>
+          <button data-sample="shipmentlog" data-label="Shipment log" aria-pressed="false"><b>Shipment log</b><span>260 rows × 8 columns · large, routes to the cloud</span></button>
+        </div>
+        <div class="or">or paste your own</div>
+        <label class="small muted" for="paste">HTML table, CSV or rows copied from a spreadsheet. First row is the header.</label>
+        <textarea id="paste" spellcheck="false" placeholder="name,email,joined,spend&#10;Thandi Mokoena,thandi@example.com,03 Nov 2026,&quot;R 1 234,50&quot;"></textarea>
+        <div class="row"><button id="use-paste" class="btn">Use pasted table</button></div>
+        <p id="paste-msg" class="muted small" role="status"></p>
+      </section>
+    </div>
+    <div class="tt-box"><div id="tt-app"><section class="card empty"><p class="muted">Loading the app…</p></section></div></div>
+  </div>
+  <noscript><p class="lede">The playground needs JavaScript.</p></noscript>
+</section>
+
+<section id="how">
+  <h2 class="sec">How it works</h2>
+  <div class="how">
+    <div><h3>1. Rules on your device</h3><p>Plain code types every column and flags names, emails, phone numbers and card numbers. This step needs no model and never leaves the browser.</p></div>
+    <div><h3>2. Hybrid model run</h3><p>Firebase AI Logic prefers Gemini Nano in Chrome for tables up to 1,500 cells and Gemini in the cloud above that. Flagged columns are masked before the request text exists.</p></div>
+    <div><h3>3. Checked, then yours to edit</h3><p>Every answer is validated against the schema. A bad on-device answer is retried in the cloud and the badge tells you. Rename, retype, then export.</p></div>
+  </div>
 </section>
 
 <section id="contacts">
-  <h2>1. Customer orders <span class="badge device">Runs on device</span> <span class="badge pii">Personal data</span></h2>
+  <h2 class="sec">Sample 1. Customer orders <span class="tag device">Small</span> <span class="tag pii">Personal data</span></h2>
   <p class="lede">72 cells with names, emails and phone numbers. Tabletidy flags those three columns on the device and leaves them out of the export unless you say otherwise. Everyone in this table is made up.</p>
-  <div class="card">${table("orders", ["Customer", "E-mail address", "Cell", "Town", "Ordered", "Order total"], contacts.map((r) => [esc(r[0]), r[1], r[2], r[3], r[4], zar(r[5])]))}</div>
+  <div class="sheet">${table("orders", ["Customer", "E-mail address", "Cell", "Town", "Ordered", "Order total"], contacts.map((r) => [esc(r[0]), r[1], r[2], r[3], r[4], zar(r[5])]))}</div>
 </section>
 
 <section id="prices">
-  <h2>2. Price list with messy headers <span class="badge device">Runs on device</span></h2>
+  <h2 class="sec">Sample 2. Price list with messy headers <span class="tag device">Small</span></h2>
   <p class="lede">Rand prices with spaces and decimal commas, cryptic headers and day-month-year dates. The export turns <code>R 1 234,50</code> into <code>1234.5</code> and <code>03 Nov 2026</code> into <code>2026-11-03</code>.</p>
-  <div class="card">${table("pricelist", ["itm_cd", "DESC.", "Prys (R) incl", "VAT?", "QTY O/H", "lst_upd"], prices.map((r) => [r[0], esc(r[1]), zar(r[2]), r[3], r[4], r[5]]))}</div>
+  <div class="sheet">${table("pricelist", ["itm_cd", "DESC.", "Prys (R) incl", "VAT?", "QTY O/H", "lst_upd"], prices.map((r) => [r[0], esc(r[1]), zar(r[2]), r[3], r[4], r[5]]))}</div>
 </section>
 
 <section id="shipments">
-  <h2>3. Shipment log, 260 rows <span class="badge cloud">Routes to cloud</span></h2>
+  <h2 class="sec">Sample 3. Shipment log, 260 rows <span class="tag cloud">Routes to cloud</span></h2>
   <p class="lede">2,080 cells, above the 1,500-cell limit Tabletidy sets for Gemini Nano's small context window. In Auto mode this one goes to Gemini in the cloud through Firebase AI Logic and the badge says why.</p>
-  <div class="card scroll">${table("shipmentlog", ["Ref", "Dispatched", "Province", "Depot", "Method", "Mass", "Charge", "State"], big)}</div>
+  <div class="sheet scroll">${table("shipmentlog", ["Ref", "Dispatched", "Province", "Depot", "Method", "Mass", "Charge", "State"], big)}</div>
 </section>
 
 <section id="events">
-  <h2>4. A list that is not a table <span class="badge device">Runs on device</span></h2>
-  <p class="lede">Cards built from plain <code>div</code> elements. Tabletidy detects the repeated layout and turns it into rows and columns.</p>
+  <h2 class="sec">A list that is not a table <span class="tag device">Extension</span></h2>
+  <p class="lede">Cards built from plain <code>div</code> elements. The Tabletidy extension detects the repeated layout on any page and turns it into rows and columns.</p>
   <div class="listing">
 ${listings.map((l) => `    <div class="event"><h3>${esc(l[0])}</h3><span class="when">${l[1]}</span><span class="where">${l[2]}</span><span class="price">${l[3]}</span><span class="seats">${l[4]}</span></div>`).join("\n")}
   </div>
+</section>
+
+<section id="install">
+  <h2 class="sec">Also a Chrome extension</h2>
+  <p class="lede">The same code runs in a Chrome side panel, where it scans whatever page you are on and lets you pick one of the tables or repeated lists it finds. It is loaded unpacked in desktop Google Chrome 139 or newer. Full setup is in the <a href="https://github.com/skillmerc/tabletidy#extension-setup">README</a>.</p>
+  <div class="panel"><ol class="steps">
+    <li>Clone <a href="https://github.com/skillmerc/tabletidy">github.com/skillmerc/tabletidy</a>, add your Firebase web config, then run <code>npm install</code> and <code>npm run build:ext</code>.</li>
+    <li>Open <code>chrome://extensions</code>, turn on Developer mode, click <em>Load unpacked</em> and choose <code>extension/dist</code>.</li>
+    <li>Open any page with a table (this one works), click the Tabletidy toolbar button and press <em>Scan this page</em>.</li>
+  </ol></div>
 </section>
 </main>
 
 <footer><div class="wrap">
   Tabletidy is an entry for #BuildHybridAI 2026, built by SKILLMERC with an AI coding agent. Open source under Apache 2.0:
   <a href="https://github.com/skillmerc/tabletidy">github.com/skillmerc/tabletidy</a>. All data on this page is invented sample data.
+  Cloud requests are protected by Firebase App Check (reCAPTCHA Enterprise).
 </div></footer>
+<script type="module" src="app/playground.js"></script>
 </body>
 </html>
 `;

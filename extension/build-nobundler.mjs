@@ -17,8 +17,10 @@ let s = fs.readFileSync(ai, "utf8")
   .replace('from "firebase/app-check"', 'from "./vendor/firebase_app-check.js"')
   .replace('from "firebase/app"', 'from "./vendor/firebase_app.js"')
   .replace('from "firebase/ai"', 'from "./vendor/firebase_ai.js"')
-  .replace("const env = import.meta.env;", 'import { env } from "./config.js";');
+;
 fs.writeFileSync(ai, s);
+const platform = path.join(dist, "platform.js");
+fs.writeFileSync(platform, fs.readFileSync(platform, "utf8").replace("const env = import.meta.env;", 'import { env } from "./config.js";'));
 // content.js must be a classic script: inline detect.js without its exports.
 const detect = fs.readFileSync(path.join(root, "src/lib/detect.js"), "utf8").replace(/^export /gm, "");
 const content = fs.readFileSync(path.join(root, "src/content.js"), "utf8").replace(/^import .*$/m, "");

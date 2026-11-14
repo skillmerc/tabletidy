@@ -1,27 +1,24 @@
-// Firebase AI Logic hybrid inference for the side panel. Built during #BuildHybridAI 2026.
-// - One Firebase app + App Check (required by AI Logic).
+// Firebase AI Logic hybrid inference, shared by the hosted playground and the extension
+// side panel. Built during #BuildHybridAI 2026.
+// - One Firebase app + App Check (required by AI Logic): reCAPTCHA Enterprise on the hosted
+//   site, a registered debug token in the extension (extensions cannot run reCAPTCHA).
 // - getGenerativeModel(..., { mode }) with InferenceMode PREFER_ON_DEVICE / PREFER_IN_CLOUD /
 //   ONLY_ON_DEVICE / ONLY_IN_CLOUD: Gemini Nano in Chrome when available, Gemini in the cloud otherwise.
-// - The same structured-output schema is enforced on both runtimes.
+// - The same structured-output schema is enforced on both runtimes; answers are validated
+//   again in lib/hybrid.js, which also owns the fallback rules.
 import { initializeApp } from "firebase/app";
-import { initializeAppCheck, CustomProvider } from "firebase/app-check";
+import { initializeAppCheck, CustomProvider, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import { getAI, getGenerativeModel, GoogleAIBackend, InferenceMode, Schema } from "firebase/ai";
 import { TYPES } from "./lib/infer.js";
-
-// Firebase web config (public by design; the API key is restricted to this extension's
-// origin and to the AI Logic / App Check / Installations APIs). Injected at build time
-// from web/.env.local, see README "Setup".
-const env = import.meta.env;
-const firebaseConfig = {
-  apiKey: env.VITE_FIREBASE_API_KEY,
-  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: env.VITE_FIREBASE_APP_ID,
-};
+import { RESPONSE_JSON_SCHEMA } from "./lib/tidy.js";
 
 export const CLOUD_MODEL = "gemini-3.5-flash-lite";
+
+// Same options for availability(), download and every on-device session.
+const DEVICE_OPTIONS = {
+  expectedInputs: [{ type: "text", languages: ["en"] }],
+  expectedOutputs: [{ type: "text", languages: ["en"] }],
+};
 
 const responseSchema = Schema.object({
   properties: {
@@ -39,26 +36,36 @@ const responseSchema = Schema.object({
   },
 });
 
-let ai = null;
+let settings = null;
+let aiPromise = null;
 const models = new Map();
 
 /**
- * Start Firebase lazily. Extensions cannot use reCAPTCHA, so App Check runs with a
- * registered debug token (accepted by the contest rules) read from extension storage
- * (Settings) or, for local builds only, from the build env.
+ * Set the Firebase web config and the App Check provider for this surface.
+ * appCheck: { kind: "recaptcha-enterprise", siteKey } (hosted site)
+ *        or { kind: "debug", getToken: async () => string } (extension, local development).
  */
-export async function initAI() {
-  if (ai) return ai;
-  const { appCheckDebugToken } = await chrome.storage.local.get("appCheckDebugToken");
-  const token = appCheckDebugToken || env.VITE_APPCHECK_DEBUG_TOKEN;
-  if (token) self.FIREBASE_APPCHECK_DEBUG_TOKEN = token;
-  const app = initializeApp(firebaseConfig);
-  initializeAppCheck(app, {
-    provider: new CustomProvider({ getToken: () => Promise.reject(new Error("Cloud needs an App Check debug token (Settings)")) }),
-    isTokenAutoRefreshEnabled: false,
-  });
-  ai = getAI(app, { backend: new GoogleAIBackend() });
-  return ai;
+export function configureAI(s) { settings = s; }
+
+/** Start Firebase lazily: app, App Check, then the AI Logic backend (Gemini Developer API). */
+export function initAI() {
+  if (aiPromise) return aiPromise;
+  aiPromise = (async () => {
+    if (!settings) throw new Error("configureAI() was not called");
+    const app = initializeApp(settings.firebaseConfig);
+    if (settings.appCheck.kind === "recaptcha-enterprise") {
+      initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(settings.appCheck.siteKey), isTokenAutoRefreshEnabled: true });
+    } else {
+      const token = await settings.appCheck.getToken?.();
+      if (token) self.FIREBASE_APPCHECK_DEBUG_TOKEN = token;
+      initializeAppCheck(app, {
+        provider: new CustomProvider({ getToken: () => Promise.reject(new Error("Cloud needs an App Check debug token (Settings)")) }),
+        isTokenAutoRefreshEnabled: false,
+      });
+    }
+    return getAI(app, { backend: new GoogleAIBackend() });
+  })();
+  return aiPromise;
 }
 
 /** Hybrid model for one InferenceMode key ("PREFER_ON_DEVICE", ...). Cached per mode. */
@@ -68,13 +75,8 @@ export async function modelFor(modeKey) {
     mode: InferenceMode[modeKey],
     // On device: Chrome Prompt API (Gemini Nano) with a JSON Schema response constraint.
     onDeviceParams: {
-      createOptions: {
-        temperature: 0.2,
-        topK: 3,
-        expectedInputs: [{ type: "text", languages: ["en"] }],
-        expectedOutputs: [{ type: "text", languages: ["en"] }],
-      },
-      promptOptions: { responseConstraint: responseSchema.toJSON() },
+      createOptions: DEVICE_OPTIONS,
+      promptOptions: { responseConstraint: RESPONSE_JSON_SCHEMA },
     },
     // Cloud: Gemini Developer API through Firebase AI Logic, same schema.
     inCloudParams: {
@@ -86,25 +88,36 @@ export async function modelFor(modeKey) {
   return model;
 }
 
-/** Is Gemini Nano usable in this browser right now? ("available" | "downloadable" | "downloading" | "unavailable") */
+/** Gemini Nano in this browser right now: "available" | "downloadable" | "downloading" | "unavailable". */
 export async function deviceStatus() {
   try {
     if (!("LanguageModel" in self)) return "unavailable";
-    return await self.LanguageModel.availability({ expectedInputs: [{ type: "text", languages: ["en"] }], expectedOutputs: [{ type: "text", languages: ["en"] }] });
+    return await self.LanguageModel.availability(DEVICE_OPTIONS);
   } catch { return "unavailable"; }
 }
 
 /**
- * Run one prompt. Must be called from a click handler the first time (Nano download needs
- * a user gesture). Returns { text, source: "on_device" | "in_cloud", ms }.
+ * Download Gemini Nano. Must be called from a click (Chrome needs a user gesture).
+ * onProgress gets 0..1. Resolves with the new deviceStatus() when the download ends.
  */
-export async function runPrompt(modeKey, prompt, onProgress) {
+export async function downloadDeviceModel(onProgress) {
+  const model = await modelFor("PREFER_ON_DEVICE");
+  await model.initializeDeviceModel((p) => onProgress?.(p));
+  return deviceStatus();
+}
+
+/**
+ * Run one prompt through Firebase AI Logic. Returns { text, source: "on_device" | "in_cloud", ms }.
+ * The answer is NOT trusted here: lib/hybrid.js validates it and decides about fallback.
+ */
+export async function runPrompt(modeKey, prompt) {
   const model = await modelFor(modeKey);
-  if (modeKey !== "ONLY_IN_CLOUD") model.initializeDeviceModel?.((p) => onProgress?.(p));
   const t0 = performance.now();
   const result = await model.generateContent(prompt);
+  let text = "";
+  try { text = result.response.text(); } catch { text = ""; }
   return {
-    text: result.response.text(),
+    text,
     source: String(result.response.inferenceSource || (modeKey === "ONLY_IN_CLOUD" ? "in_cloud" : "on_device")).toLowerCase(),
     ms: Math.round(performance.now() - t0),
   };

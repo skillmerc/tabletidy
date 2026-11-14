@@ -12,3 +12,5 @@ extension/dist/
 extension-pubkey.txt
 chrome-profile/
 docs/KYLE-ON-DEVICE-STEPS.md
+site/app/
+docs/KYLE-*.md

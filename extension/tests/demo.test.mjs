@@ -9,11 +9,12 @@ import { localAnalysis, route, buildPrompt, LARGE_TABLE_CELLS } from "../src/lib
 
 const html = fs.readFileSync(new URL("../../site/index.html", import.meta.url), "utf8");
 const { document } = parseHTML(html);
-const scanned = findCandidates(document, { limit: 8 }).map((c) => {
+const scanned = findCandidates(document, { limit: 12 }).map((c) => {
   const res = extract(c, "https://tabletidy-82369.web.app/");
   return { el: c.container, headers: res.columns.map((x) => x.name), rows: res.rows };
 });
-const byId = (id) => scanned.find((t) => t.el.closest?.(`#${id}`) || t.el.id === id || t.el.querySelector?.(`#${id}`));
+// Most specific match first: the element itself, then something inside it, then a wrapper around it.
+const byId = (id) => scanned.find((t) => t.el.id === id) || scanned.find((t) => t.el.closest?.(`#${id}`)) || scanned.find((t) => t.el.querySelector?.(`#${id}`));
 
 test("demo page: all four samples are detected", () => {
   for (const id of ["orders", "pricelist", "shipmentlog", "events"]) assert.ok(byId(id), `sample #${id} not detected`);
