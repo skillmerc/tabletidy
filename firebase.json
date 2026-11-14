@@ -1,0 +1,9 @@
+{
+  "hosting": {
+    "site": "tabletidy-82369",
+    "public": "site",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "cleanUrls": true,
+    "headers": [{ "source": "**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=300" }] }]
+  }
+}

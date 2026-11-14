@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabletidy demo: sample tables to tidy</title>
+<meta name="description" content="Sample tables for trying Tabletidy, a Chrome extension that cleans web tables with hybrid AI: Gemini Nano on device, Gemini in the cloud through Firebase AI Logic.">
+<link rel="icon" href="icon.png">
+<style>
+:root { --ink:#17201f; --muted:#5d6b69; --line:#e3e8e7; --bg:#f6f8f7; --card:#fff; --brand:#0f766e; --brand-soft:#e3f3f1; --cloud:#3156c9; --cloud-soft:#e7edfc; --warn:#a24b0c; --warn-soft:#fdf0e4; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+header.site { background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; }
+header.site .wrap { display:flex; align-items:center; justify-content:space-between; height:56px; }
+.brand { font-weight:700; font-size:18px; display:flex; align-items:center; gap:10px; letter-spacing:-.01em; }
+.logo { width:22px; height:22px; border-radius:6px; background:
+  linear-gradient(#fff 0 0) 5px 6px / 12px 2px no-repeat, linear-gradient(#fff 0 0) 5px 10px / 12px 2px no-repeat,
+  linear-gradient(#fff 0 0) 5px 14px / 7px 2px no-repeat, var(--brand); }
+nav a { text-decoration:none; font-size:14px; margin-left:20px; }
+nav a:hover { color:var(--brand); }
+.hero { padding:56px 0 28px; }
+.hero h1 { font-size:clamp(30px,5vw,44px); line-height:1.12; letter-spacing:-.025em; margin:0 0 20px; max-width:17em; }
+.hero ul { list-style:none; padding:0; margin:0 0 26px; max-width:44em; display:grid; gap:8px; color:#33403e; }
+.hero li { padding-left:26px; position:relative; }
+.hero li::before { content:""; position:absolute; left:2px; top:.55em; width:10px; height:10px; border-radius:3px; background:var(--brand); }
+.cta { display:flex; flex-wrap:wrap; gap:12px; }
+.btn { display:inline-block; padding:11px 18px; border-radius:10px; font-weight:600; text-decoration:none; border:1px solid var(--line); background:var(--card); color:var(--ink); }
+.btn.primary { background:var(--brand); border-color:var(--brand); color:#fff; }
+.badge { display:inline-block; font-size:12px; font-weight:600; padding:3px 10px; border-radius:999px; vertical-align:middle; }
+.badge.device { background:var(--brand-soft); color:var(--brand); }
+.badge.cloud { background:var(--cloud-soft); color:var(--cloud); }
+.badge.pii { background:var(--warn-soft); color:var(--warn); }
+section { padding:26px 0; }
+h2 { font-size:22px; letter-spacing:-.015em; margin:0 0 6px; display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+p.lede { margin:0 0 16px; color:var(--muted); max-width:46em; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+.scroll { max-height:420px; overflow:auto; }
+table { border-collapse:collapse; width:100%; font-size:14px; }
+th, td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
+th { background:#fafcfb; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); position:sticky; top:0; }
+tbody tr:last-child td { border-bottom:0; }
+tbody tr:hover td { background:#fafcfb; }
+ol.steps { margin:0; padding:18px 22px 18px 42px; display:grid; gap:8px; }
+ol.steps code, p code { background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:1px 6px; font-size:.9em; }
+.listing { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; }
+.event { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+.event h3 { margin:0 0 8px; font-size:16px; line-height:1.3; }
+.event span { display:block; font-size:14px; color:var(--muted); }
+.event .price { color:var(--ink); font-weight:600; margin-top:8px; }
+footer { padding:36px 0 56px; color:var(--muted); font-size:14px; }
+a { color:var(--brand); }
+nav a { color:var(--muted); }
+</style>
+</head>
+<body>
+<header class="site"><div class="wrap">
+  <div class="brand"><span class="logo"></span>Tabletidy</div>
+  <nav><a href="#install">Install</a><a href="#contacts">Sample tables</a><a href="https://github.com/skillmerc/tabletidy">GitHub</a></nav>
+</div></header>
+
+<main class="wrap">
+<div class="hero">
+  <h1>Pick a table on any web page. Get a clean spreadsheet.</h1>
+  <ul>
+    <li>Tabletidy is a Chrome extension that finds the tables and repeated lists on a page and lets you pick one.</li>
+    <li>Gemini Nano names and types the columns on your device in about a second. Nothing is uploaded for small tables.</li>
+    <li>Large tables go to Gemini in the cloud through Firebase AI Logic, with personal-data columns masked before the request is built.</li>
+    <li>Every run shows an On device or Cloud badge with the reason, then exports CSV or JSON with real numbers and ISO dates.</li>
+  </ul>
+  <div class="cta"><a class="btn primary" href="#install">Install and try it on this page</a><a class="btn" href="https://github.com/skillmerc/tabletidy">Source on GitHub</a></div>
+</div>
+
+<section id="install">
+  <h2>Install (about 3 minutes)</h2>
+  <p class="lede">Tabletidy is loaded as an unpacked extension in desktop Google Chrome 139 or newer. Full setup, including your own free Firebase project, is in the <a href="https://github.com/skillmerc/tabletidy#setup-under-10-minutes">README</a>.</p>
+  <div class="card"><ol class="steps">
+    <li>Clone <a href="https://github.com/skillmerc/tabletidy">github.com/skillmerc/tabletidy</a>, add your Firebase web config, then run <code>npm install</code> and <code>npm run build:ext</code>.</li>
+    <li>Open <code>chrome://extensions</code>, turn on Developer mode, click <em>Load unpacked</em> and choose <code>extension/dist</code>.</li>
+    <li>Come back to this page, click the Tabletidy toolbar button and press <em>Scan this page</em>.</li>
+    <li>Pick a table below, press <em>Tidy columns</em>, check the badge, then export CSV or JSON.</li>
+  </ol></div>
+</section>
+
+<section id="contacts">
+  <h2>1. Customer orders <span class="badge device">Runs on device</span> <span class="badge pii">Personal data</span></h2>
+  <p class="lede">72 cells with names, emails and phone numbers. Tabletidy flags those three columns on the device and leaves them out of the export unless you say otherwise. Everyone in this table is made up.</p>
+  <div class="card"><table id="orders" class=""><thead><tr><th>Customer</th><th>E-mail address</th><th>Cell</th><th>Town</th><th>Ordered</th><th>Order total</th></tr></thead><tbody>
+<tr><td>Thandi Mokoena</td><td>thandi.mokoena@example.com</td><td>+27 82 555 0143</td><td>Johannesburg</td><td>03 Nov 2026</td><td>R 4 250,00</td></tr>
+<tr><td>Pieter van Wyk</td><td>pieter.vw@example.org</td><td>+27 83 555 0178</td><td>Pretoria</td><td>04 Nov 2026</td><td>R 1 899,50</td></tr>
+<tr><td>Aisha Patel</td><td>aisha.patel@example.com</td><td>+27 71 555 0112</td><td>Durban</td><td>04 Nov 2026</td><td>R 12 480,00</td></tr>
+<tr><td>Sipho Dlamini</td><td>sipho.d@example.net</td><td>+27 76 555 0190</td><td>Mbombela</td><td>05 Nov 2026</td><td>R 730,00</td></tr>
+<tr><td>Lerato Khumalo</td><td>lerato.khumalo@example.com</td><td>+27 84 555 0127</td><td>Bloemfontein</td><td>06 Nov 2026</td><td>R 2 115,75</td></tr>
+<tr><td>Johan Botha</td><td>jbotha@example.org</td><td>+27 82 555 0166</td><td>Stellenbosch</td><td>06 Nov 2026</td><td>R 6 020,00</td></tr>
+<tr><td>Naledi Sithole</td><td>naledi.s@example.com</td><td>+27 79 555 0104</td><td>Polokwane</td><td>09 Nov 2026</td><td>R 349,99</td></tr>
+<tr><td>Riaan Naidoo</td><td>riaan.naidoo@example.net</td><td>+27 72 555 0155</td><td>Pietermaritzburg</td><td>09 Nov 2026</td><td>R 18 300,00</td></tr>
+<tr><td>Zanele Mthembu</td><td>zanele.m@example.com</td><td>+27 81 555 0139</td><td>Gqeberha</td><td>10 Nov 2026</td><td>R 905,20</td></tr>
+<tr><td>Michael Abrahams</td><td>m.abrahams@example.org</td><td>+27 74 555 0181</td><td>Cape Town</td><td>11 Nov 2026</td><td>R 2 760,00</td></tr>
+<tr><td>Fatima Ismail</td><td>fatima.ismail@example.com</td><td>+27 83 555 0120</td><td>Rustenburg</td><td>12 Nov 2026</td><td>R 1 540,40</td></tr>
+<tr><td>Bongani Zulu</td><td>bongani.zulu@example.net</td><td>+27 78 555 0197</td><td>Kimberley</td><td>13 Nov 2026</td><td>R 8 875,00</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="prices">
+  <h2>2. Price list with messy headers <span class="badge device">Runs on device</span></h2>
+  <p class="lede">Rand prices with spaces and decimal commas, cryptic headers and day-month-year dates. The export turns <code>R 1 234,50</code> into <code>1234.5</code> and <code>03 Nov 2026</code> into <code>2026-11-03</code>.</p>
+  <div class="card"><table id="pricelist" class=""><thead><tr><th>itm_cd</th><th>DESC.</th><th>Prys (R) incl</th><th>VAT?</th><th>QTY O/H</th><th>lst_upd</th></tr></thead><tbody>
+<tr><td>WB-1040</td><td>Wheelbarrow, 65 L steel</td><td>R 1 234,50</td><td>Y</td><td>18</td><td>03 Nov 2026</td></tr>
+<tr><td>PT-2210</td><td>Paint, exterior white 20 L</td><td>R 1 899,00</td><td>Y</td><td>42</td><td>03 Nov 2026</td></tr>
+<tr><td>CM-0050</td><td>Cement 42.5N, 50 kg bag</td><td>R 112,95</td><td>Y</td><td>640</td><td>10 Nov 2026</td></tr>
+<tr><td>LD-3301</td><td>Ladder, aluminium 3.6 m</td><td>R 2 450,00</td><td>Y</td><td>7</td><td>28 Oct 2026</td></tr>
+<tr><td>DR-7718</td><td>Cordless drill 18 V kit</td><td>R 3 199,99</td><td>Y</td><td>11</td><td>07 Nov 2026</td></tr>
+<tr><td>HP-0912</td><td>Garden hose 30 m</td><td>R 489,90</td><td>Y</td><td>55</td><td>30 Oct 2026</td></tr>
+<tr><td>TL-4400</td><td>Floor tile 600x600, per box</td><td>R 359,00</td><td>N</td><td>210</td><td>12 Nov 2026</td></tr>
+<tr><td>GS-1500</td><td>Generator 5.5 kVA</td><td>R 14 999,00</td><td>N</td><td>3</td><td>01 Nov 2026</td></tr>
+<tr><td>SC-0086</td><td>Wood screws 8x40, box of 200</td><td>R 74,50</td><td>Y</td><td>980</td><td>05 Nov 2026</td></tr>
+<tr><td>RF-6020</td><td>Roof sheet IBR 3.0 m</td><td>R 412,75</td><td>N</td><td>126</td><td>11 Nov 2026</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="shipments">
+  <h2>3. Shipment log, 260 rows <span class="badge cloud">Routes to cloud</span></h2>
+  <p class="lede">2,080 cells, above the 1,500-cell limit Tabletidy sets for Gemini Nano's small context window. In Auto mode this one goes to Gemini in the cloud through Firebase AI Logic and the badge says why.</p>
+  <div class="card scroll"><table id="shipmentlog" class=""><thead><tr><th>Ref</th><th>Dispatched</th><th>Province</th><th>Depot</th><th>Method</th><th>Mass</th><th>Charge</th><th>State</th></tr></thead><tbody>
+<tr><td>SH-40001</td><td>17/08/2026</td><td>Free State</td><td>Welkom</td><td>Overnight van</td><td>309,3 kg</td><td>R 6 977,74</td><td>Out for delivery</td></tr>
+<tr><td>SH-40002</td><td>23/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Bakkie courier</td><td>262,5 kg</td><td>R 4 915,18</td><td>In transit</td></tr>
+<tr><td>SH-40003</td><td>28/10/2026</td><td>North West</td><td>Brits</td><td>Rail</td><td>233,8 kg</td><td>R 781,78</td><td>Out for delivery</td></tr>
+<tr><td>SH-40004</td><td>11/11/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Rail</td><td>95,5 kg</td><td>R 5 344,24</td><td>In transit</td></tr>
+<tr><td>SH-40005</td><td>28/08/2026</td><td>Gauteng</td><td>Midrand</td><td>Bakkie courier</td><td>202,3 kg</td><td>R 9 290,51</td><td>Delayed</td></tr>
+<tr><td>SH-40006</td><td>25/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Bakkie courier</td><td>834,2 kg</td><td>R 5 302,15</td><td>Out for delivery</td></tr>
+<tr><td>SH-40007</td><td>22/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>163,9 kg</td><td>R 7 426,26</td><td>Returned</td></tr>
+<tr><td>SH-40008</td><td>17/11/2026</td><td>Gauteng</td><td>Midrand</td><td>Road freight</td><td>696,4 kg</td><td>R 5 409,91</td><td>Delayed</td></tr>
+<tr><td>SH-40009</td><td>23/09/2026</td><td>North West</td><td>Brits</td><td>Rail</td><td>1236,8 kg</td><td>R 937,24</td><td>Delayed</td></tr>
+<tr><td>SH-40010</td><td>24/11/2026</td><td>Eastern Cape</td><td>East London</td><td>Bakkie courier</td><td>170,3 kg</td><td>R 2 784,26</td><td>Delayed</td></tr>
+<tr><td>SH-40011</td><td>04/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Rail</td><td>190,6 kg</td><td>R 7 093,61</td><td>Returned</td></tr>
+<tr><td>SH-40012</td><td>23/08/2026</td><td>North West</td><td>Brits</td><td>Bakkie courier</td><td>1275,5 kg</td><td>R 7 656,56</td><td>Out for delivery</td></tr>
+<tr><td>SH-40013</td><td>11/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Bakkie courier</td><td>32,3 kg</td><td>R 9 144,31</td><td>Delayed</td></tr>
+<tr><td>SH-40014</td><td>22/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Bakkie courier</td><td>1288,2 kg</td><td>R 9 290,78</td><td>In transit</td></tr>
+<tr><td>SH-40015</td><td>13/10/2026</td><td>North West</td><td>Brits</td><td>Bakkie courier</td><td>759,2 kg</td><td>R 2 965,39</td><td>Delivered</td></tr>
+<tr><td>SH-40016</td><td>01/11/2026</td><td>Western Cape</td><td>Bellville</td><td>Rail</td><td>764,5 kg</td><td>R 2 834,71</td><td>Delayed</td></tr>
+<tr><td>SH-40017</td><td>12/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>374,3 kg</td><td>R 1 519,68</td><td>Returned</td></tr>
+<tr><td>SH-40018</td><td>25/11/2026</td><td>Gauteng</td><td>Midrand</td><td>Overnight van</td><td>448,5 kg</td><td>R 3 094,69</td><td>Delayed</td></tr>
+<tr><td>SH-40019</td><td>01/11/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Overnight van</td><td>648,8 kg</td><td>R 2 588,91</td><td>Out for delivery</td></tr>
+<tr><td>SH-40020</td><td>01/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Rail</td><td>125,7 kg</td><td>R 3 145,10</td><td>Delayed</td></tr>
+<tr><td>SH-40021</td><td>05/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>1089,8 kg</td><td>R 5 209,80</td><td>Delivered</td></tr>
+<tr><td>SH-40022</td><td>04/09/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>291,9 kg</td><td>R 2 946,71</td><td>Out for delivery</td></tr>
+<tr><td>SH-40023</td><td>11/10/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Road freight</td><td>716,5 kg</td><td>R 8 418,33</td><td>In transit</td></tr>
+<tr><td>SH-40024</td><td>03/09/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Rail</td><td>921,9 kg</td><td>R 7 324,87</td><td>Returned</td></tr>
+<tr><td>SH-40025</td><td>18/10/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>429,0 kg</td><td>R 557,76</td><td>Delivered</td></tr>
+<tr><td>SH-40026</td><td>09/10/2026</td><td>North West</td><td>Brits</td><td>Rail</td><td>1243,8 kg</td><td>R 1 127,67</td><td>In transit</td></tr>
+<tr><td>SH-40027</td><td>02/10/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Road freight</td><td>1162,6 kg</td><td>R 3 010,17</td><td>Out for delivery</td></tr>
+<tr><td>SH-40028</td><td>24/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Bakkie courier</td><td>992,6 kg</td><td>R 7 717,66</td><td>In transit</td></tr>
+<tr><td>SH-40029</td><td>13/10/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Bakkie courier</td><td>74,6 kg</td><td>R 243,84</td><td>Returned</td></tr>
+<tr><td>SH-40030</td><td>05/10/2026</td><td>Free State</td><td>Welkom</td><td>Rail</td><td>618,3 kg</td><td>R 2 525,47</td><td>Returned</td></tr>
+<tr><td>SH-40031</td><td>01/09/2026</td><td>North West</td><td>Brits</td><td>Overnight van</td><td>995,2 kg</td><td>R 604,19</td><td>Returned</td></tr>
+<tr><td>SH-40032</td><td>12/09/2026</td><td>Eastern Cape</td><td>East London</td><td>Rail</td><td>899,5 kg</td><td>R 6 984,06</td><td>Out for delivery</td></tr>
+<tr><td>SH-40033</td><td>11/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>962,5 kg</td><td>R 389,72</td><td>In transit</td></tr>
+<tr><td>SH-40034</td><td>02/10/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Bakkie courier</td><td>214,3 kg</td><td>R 5 142,93</td><td>Returned</td></tr>
+<tr><td>SH-40035</td><td>07/08/2026</td><td>Free State</td><td>Welkom</td><td>Bakkie courier</td><td>34,4 kg</td><td>R 9 121,25</td><td>Out for delivery</td></tr>
+<tr><td>SH-40036</td><td>17/10/2026</td><td>Free State</td><td>Welkom</td><td>Bakkie courier</td><td>364,6 kg</td><td>R 5 208,39</td><td>Delivered</td></tr>
+<tr><td>SH-40037</td><td>25/09/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>859,4 kg</td><td>R 7 607,64</td><td>In transit</td></tr>
+<tr><td>SH-40038</td><td>14/10/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Road freight</td><td>358,5 kg</td><td>R 8 142,73</td><td>Delayed</td></tr>
+<tr><td>SH-40039</td><td>09/08/2026</td><td>North West</td><td>Brits</td><td>Road freight</td><td>1256,3 kg</td><td>R 6 509,12</td><td>Out for delivery</td></tr>
+<tr><td>SH-40040</td><td>17/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Rail</td><td>538,1 kg</td><td>R 3 258,34</td><td>In transit</td></tr>
+<tr><td>SH-40041</td><td>09/10/2026</td><td>Western Cape</td><td>Bellville</td><td>Overnight van</td><td>1106,6 kg</td><td>R 7 875,73</td><td>Delayed</td></tr>
+<tr><td>SH-40042</td><td>14/10/2026</td><td>Free State</td><td>Welkom</td><td>Rail</td><td>763,2 kg</td><td>R 7 035,70</td><td>Delivered</td></tr>
+<tr><td>SH-40043</td><td>27/10/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>44,4 kg</td><td>R 867,55</td><td>Delivered</td></tr>
+<tr><td>SH-40044</td><td>12/10/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Road freight</td><td>745,6 kg</td><td>R 6 153,54</td><td>Out for delivery</td></tr>
+<tr><td>SH-40045</td><td>24/11/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>1300,9 kg</td><td>R 3 020,71</td><td>Delayed</td></tr>
+<tr><td>SH-40046</td><td>28/11/2026</td><td>North West</td><td>Brits</td><td>Bakkie courier</td><td>1381,3 kg</td><td>R 2 318,79</td><td>Delayed</td></tr>
+<tr><td>SH-40047</td><td>04/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Rail</td><td>924,1 kg</td><td>R 6 884,01</td><td>In transit</td></tr>
+<tr><td>SH-40048</td><td>01/10/2026</td><td>North West</td><td>Brits</td><td>Overnight van</td><td>475,6 kg</td><td>R 3 299,38</td><td>Out for delivery</td></tr>
+<tr><td>SH-40049</td><td>06/11/2026</td><td>North West</td><td>Brits</td><td>Rail</td><td>195,3 kg</td><td>R 3 689,34</td><td>In transit</td></tr>
+<tr><td>SH-40050</td><td>07/08/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Overnight van</td><td>1148,6 kg</td><td>R 4 168,76</td><td>Returned</td></tr>
+<tr><td>SH-40051</td><td>14/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Bakkie courier</td><td>1220,0 kg</td><td>R 3 411,11</td><td>Returned</td></tr>
+<tr><td>SH-40052</td><td>24/10/2026</td><td>Eastern Cape</td><td>East London</td><td>Road freight</td><td>332,3 kg</td><td>R 5 942,30</td><td>Out for delivery</td></tr>
+<tr><td>SH-40053</td><td>15/08/2026</td><td>North West</td><td>Brits</td><td>Overnight van</td><td>1167,2 kg</td><td>R 7 989,73</td><td>Delivered</td></tr>
+<tr><td>SH-40054</td><td>22/09/2026</td><td>Free State</td><td>Welkom</td><td>Overnight van</td><td>120,8 kg</td><td>R 8 898,17</td><td>Delayed</td></tr>
+<tr><td>SH-40055</td><td>14/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>339,5 kg</td><td>R 3 717,14</td><td>Returned</td></tr>
+<tr><td>SH-40056</td><td>14/11/2026</td><td>Free State</td><td>Welkom</td><td>Rail</td><td>389,4 kg</td><td>R 3 702,81</td><td>Out for delivery</td></tr>
+<tr><td>SH-40057</td><td>12/10/2026</td><td>Northern Cape</td><td>Upington</td><td>Rail</td><td>661,4 kg</td><td>R 6 483,85</td><td>In transit</td></tr>
+<tr><td>SH-40058</td><td>07/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Road freight</td><td>723,0 kg</td><td>R 7 979,50</td><td>Returned</td></tr>
+<tr><td>SH-40059</td><td>17/08/2026</td><td>Western Cape</td><td>Bellville</td><td>Overnight van</td><td>946,4 kg</td><td>R 4 240,84</td><td>In transit</td></tr>
+<tr><td>SH-40060</td><td>08/09/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Rail</td><td>545,0 kg</td><td>R 7 942,52</td><td>Delivered</td></tr>
+<tr><td>SH-40061</td><td>14/09/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Bakkie courier</td><td>729,5 kg</td><td>R 1 312,46</td><td>Returned</td></tr>
+<tr><td>SH-40062</td><td>03/10/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Road freight</td><td>1291,3 kg</td><td>R 744,10</td><td>Returned</td></tr>
+<tr><td>SH-40063</td><td>19/10/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Bakkie courier</td><td>552,6 kg</td><td>R 3 181,80</td><td>Delivered</td></tr>
+<tr><td>SH-40064</td><td>06/09/2026</td><td>Western Cape</td><td>Bellville</td><td>Bakkie courier</td><td>589,8 kg</td><td>R 2 421,41</td><td>Out for delivery</td></tr>
+<tr><td>SH-40065</td><td>03/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>149,5 kg</td><td>R 1 933,72</td><td>Delivered</td></tr>
+<tr><td>SH-40066</td><td>17/08/2026</td><td>North West</td><td>Brits</td><td>Overnight van</td><td>100,4 kg</td><td>R 2 561,88</td><td>Out for delivery</td></tr>
+<tr><td>SH-40067</td><td>13/08/2026</td><td>Free State</td><td>Welkom</td><td>Bakkie courier</td><td>1417,6 kg</td><td>R 6 557,60</td><td>Returned</td></tr>
+<tr><td>SH-40068</td><td>17/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Road freight</td><td>960,7 kg</td><td>R 1 201,54</td><td>In transit</td></tr>
+<tr><td>SH-40069</td><td>15/09/2026</td><td>Western Cape</td><td>Bellville</td><td>Road freight</td><td>170,8 kg</td><td>R 8 256,68</td><td>Out for delivery</td></tr>
+<tr><td>SH-40070</td><td>17/09/2026</td><td>Northern Cape</td><td>Upington</td><td>Bakkie courier</td><td>881,8 kg</td><td>R 5 808,10</td><td>Delayed</td></tr>
+<tr><td>SH-40071</td><td>02/08/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>307,2 kg</td><td>R 6 058,99</td><td>Delivered</td></tr>
+<tr><td>SH-40072</td><td>12/11/2026</td><td>Eastern Cape</td><td>East London</td><td>Bakkie courier</td><td>1168,6 kg</td><td>R 2 053,50</td><td>Returned</td></tr>
+<tr><td>SH-40073</td><td>05/08/2026</td><td>Gauteng</td><td>Midrand</td><td>Overnight van</td><td>394,5 kg</td><td>R 3 451,00</td><td>Out for delivery</td></tr>
+<tr><td>SH-40074</td><td>28/10/2026</td><td>Free State</td><td>Welkom</td><td>Road freight</td><td>1051,5 kg</td><td>R 423,57</td><td>Returned</td></tr>
+<tr><td>SH-40075</td><td>27/08/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Road freight</td><td>1228,3 kg</td><td>R 7 334,42</td><td>Delayed</td></tr>
+<tr><td>SH-40076</td><td>24/10/2026</td><td>North West</td><td>Brits</td><td>Bakkie courier</td><td>499,5 kg</td><td>R 3 121,92</td><td>Out for delivery</td></tr>
+<tr><td>SH-40077</td><td>22/09/2026</td><td>Free State</td><td>Welkom</td><td>Bakkie courier</td><td>1259,2 kg</td><td>R 8 614,05</td><td>Out for delivery</td></tr>
+<tr><td>SH-40078</td><td>04/10/2026</td><td>North West</td><td>Brits</td><td>Overnight van</td><td>776,9 kg</td><td>R 6 774,44</td><td>Delayed</td></tr>
+<tr><td>SH-40079</td><td>23/10/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>364,9 kg</td><td>R 5 635,04</td><td>Out for delivery</td></tr>
+<tr><td>SH-40080</td><td>20/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Rail</td><td>148,8 kg</td><td>R 4 506,12</td><td>Out for delivery</td></tr>
+<tr><td>SH-40081</td><td>01/11/2026</td><td>Free State</td><td>Welkom</td><td>Overnight van</td><td>965,8 kg</td><td>R 5 376,70</td><td>Delivered</td></tr>
+<tr><td>SH-40082</td><td>12/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>326,7 kg</td><td>R 2 217,86</td><td>Delayed</td></tr>
+<tr><td>SH-40083</td><td>09/08/2026</td><td>North West</td><td>Brits</td><td>Overnight van</td><td>106,2 kg</td><td>R 1 251,61</td><td>In transit</td></tr>
+<tr><td>SH-40084</td><td>01/08/2026</td><td>Gauteng</td><td>Midrand</td><td>Road freight</td><td>515,0 kg</td><td>R 1 512,28</td><td>In transit</td></tr>
+<tr><td>SH-40085</td><td>10/09/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>1137,8 kg</td><td>R 4 029,03</td><td>Returned</td></tr>
+<tr><td>SH-40086</td><td>11/09/2026</td><td>Gauteng</td><td>Midrand</td><td>Bakkie courier</td><td>1357,5 kg</td><td>R 2 279,72</td><td>Returned</td></tr>
+<tr><td>SH-40087</td><td>10/10/2026</td><td>Western Cape</td><td>Bellville</td><td>Overnight van</td><td>670,1 kg</td><td>R 2 274,30</td><td>Delayed</td></tr>
+<tr><td>SH-40088</td><td>19/08/2026</td><td>Western Cape</td><td>Bellville</td><td>Rail</td><td>789,0 kg</td><td>R 6 233,37</td><td>Delayed</td></tr>
+<tr><td>SH-40089</td><td>13/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>1076,4 kg</td><td>R 3 447,22</td><td>Delivered</td></tr>
+<tr><td>SH-40090</td><td>25/08/2026</td><td>Gauteng</td><td>Midrand</td><td>Overnight van</td><td>608,0 kg</td><td>R 7 650,78</td><td>Returned</td></tr>
+<tr><td>SH-40091</td><td>24/08/2026</td><td>Western Cape</td><td>Bellville</td><td>Bakkie courier</td><td>834,6 kg</td><td>R 1 306,95</td><td>In transit</td></tr>
+<tr><td>SH-40092</td><td>21/08/2026</td><td>Gauteng</td><td>Midrand</td><td>Rail</td><td>1086,8 kg</td><td>R 7 613,03</td><td>Delayed</td></tr>
+<tr><td>SH-40093</td><td>25/11/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Road freight</td><td>1429,1 kg</td><td>R 5 402,83</td><td>Delayed</td></tr>
+<tr><td>SH-40094</td><td>17/09/2026</td><td>North West</td><td>Brits</td><td>Rail</td><td>1078,1 kg</td><td>R 8 907,39</td><td>In transit</td></tr>
+<tr><td>SH-40095</td><td>18/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>506,5 kg</td><td>R 7 066,76</td><td>In transit</td></tr>
+<tr><td>SH-40096</td><td>07/10/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>490,2 kg</td><td>R 3 249,68</td><td>Out for delivery</td></tr>
+<tr><td>SH-40097</td><td>22/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Bakkie courier</td><td>758,8 kg</td><td>R 8 935,78</td><td>Out for delivery</td></tr>
+<tr><td>SH-40098</td><td>04/08/2026</td><td>Eastern Cape</td><td>East London</td><td>Overnight van</td><td>888,4 kg</td><td>R 3 963,10</td><td>Out for delivery</td></tr>
+<tr><td>SH-40099</td><td>10/08/2026</td><td>North West</td><td>Brits</td><td>Rail</td><td>1116,4 kg</td><td>R 2 500,83</td><td>In transit</td></tr>
+<tr><td>SH-40100</td><td>07/09/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>666,4 kg</td><td>R 8 497,18</td><td>Delayed</td></tr>
+<tr><td>SH-40101</td><td>23/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Rail</td><td>756,0 kg</td><td>R 4 772,25</td><td>In transit</td></tr>
+<tr><td>SH-40102</td><td>10/10/2026</td><td>Western Cape</td><td>Bellville</td><td>Overnight van</td><td>123,6 kg</td><td>R 3 957,31</td><td>Delayed</td></tr>
+<tr><td>SH-40103</td><td>10/11/2026</td><td>Free State</td><td>Welkom</td><td>Overnight van</td><td>192,5 kg</td><td>R 6 950,74</td><td>In transit</td></tr>
+<tr><td>SH-40104</td><td>20/10/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>455,9 kg</td><td>R 5 918,10</td><td>Out for delivery</td></tr>
+<tr><td>SH-40105</td><td>08/09/2026</td><td>Eastern Cape</td><td>East London</td><td>Bakkie courier</td><td>1405,6 kg</td><td>R 1 268,75</td><td>Out for delivery</td></tr>
+<tr><td>SH-40106</td><td>17/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Rail</td><td>1079,6 kg</td><td>R 5 587,36</td><td>Delayed</td></tr>
+<tr><td>SH-40107</td><td>15/09/2026</td><td>Gauteng</td><td>Midrand</td><td>Overnight van</td><td>28,0 kg</td><td>R 8 196,41</td><td>Delivered</td></tr>
+<tr><td>SH-40108</td><td>06/08/2026</td><td>Western Cape</td><td>Bellville</td><td>Overnight van</td><td>526,5 kg</td><td>R 2 846,12</td><td>Out for delivery</td></tr>
+<tr><td>SH-40109</td><td>21/11/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>1127,7 kg</td><td>R 5 263,62</td><td>Delivered</td></tr>
+<tr><td>SH-40110</td><td>16/09/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>893,0 kg</td><td>R 2 190,20</td><td>Delivered</td></tr>
+<tr><td>SH-40111</td><td>21/09/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Bakkie courier</td><td>1419,1 kg</td><td>R 1 710,53</td><td>Delayed</td></tr>
+<tr><td>SH-40112</td><td>24/09/2026</td><td>Gauteng</td><td>Midrand</td><td>Road freight</td><td>1305,2 kg</td><td>R 8 313,55</td><td>In transit</td></tr>
+<tr><td>SH-40113</td><td>06/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>1326,2 kg</td><td>R 3 117,15</td><td>Out for delivery</td></tr>
+<tr><td>SH-40114</td><td>07/08/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>547,8 kg</td><td>R 6 979,90</td><td>Returned</td></tr>
+<tr><td>SH-40115</td><td>24/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>214,3 kg</td><td>R 8 754,77</td><td>Returned</td></tr>
+<tr><td>SH-40116</td><td>21/09/2026</td><td>Western Cape</td><td>Bellville</td><td>Overnight van</td><td>963,2 kg</td><td>R 500,39</td><td>Delivered</td></tr>
+<tr><td>SH-40117</td><td>06/09/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Overnight van</td><td>641,9 kg</td><td>R 7 921,71</td><td>In transit</td></tr>
+<tr><td>SH-40118</td><td>08/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>962,5 kg</td><td>R 8 947,27</td><td>In transit</td></tr>
+<tr><td>SH-40119</td><td>12/08/2026</td><td>Western Cape</td><td>Bellville</td><td>Overnight van</td><td>426,8 kg</td><td>R 2 449,04</td><td>Returned</td></tr>
+<tr><td>SH-40120</td><td>13/11/2026</td><td>Western Cape</td><td>Bellville</td><td>Overnight van</td><td>589,1 kg</td><td>R 4 161,13</td><td>Delayed</td></tr>
+<tr><td>SH-40121</td><td>21/10/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Rail</td><td>818,6 kg</td><td>R 1 962,98</td><td>Delivered</td></tr>
+<tr><td>SH-40122</td><td>12/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Bakkie courier</td><td>727,9 kg</td><td>R 5 027,89</td><td>Delayed</td></tr>
+<tr><td>SH-40123</td><td>17/10/2026</td><td>Free State</td><td>Welkom</td><td>Rail</td><td>24,3 kg</td><td>R 4 445,06</td><td>Returned</td></tr>
+<tr><td>SH-40124</td><td>14/11/2026</td><td>North West</td><td>Brits</td><td>Overnight van</td><td>851,3 kg</td><td>R 4 185,47</td><td>Returned</td></tr>
+<tr><td>SH-40125</td><td>16/08/2026</td><td>Eastern Cape</td><td>East London</td><td>Rail</td><td>52,2 kg</td><td>R 1 413,62</td><td>Delayed</td></tr>
+<tr><td>SH-40126</td><td>23/09/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Rail</td><td>275,1 kg</td><td>R 6 044,69</td><td>Delayed</td></tr>
+<tr><td>SH-40127</td><td>28/11/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Overnight van</td><td>124,6 kg</td><td>R 735,47</td><td>Returned</td></tr>
+<tr><td>SH-40128</td><td>11/08/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Road freight</td><td>909,8 kg</td><td>R 3 349,39</td><td>Delayed</td></tr>
+<tr><td>SH-40129</td><td>13/09/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Bakkie courier</td><td>807,9 kg</td><td>R 3 340,66</td><td>In transit</td></tr>
+<tr><td>SH-40130</td><td>05/11/2026</td><td>Eastern Cape</td><td>East London</td><td>Bakkie courier</td><td>215,4 kg</td><td>R 8 231,39</td><td>In transit</td></tr>
+<tr><td>SH-40131</td><td>16/09/2026</td><td>Northern Cape</td><td>Upington</td><td>Rail</td><td>236,5 kg</td><td>R 8 229,70</td><td>Delivered</td></tr>
+<tr><td>SH-40132</td><td>19/10/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>552,9 kg</td><td>R 1 012,55</td><td>Delivered</td></tr>
+<tr><td>SH-40133</td><td>15/10/2026</td><td>Eastern Cape</td><td>East London</td><td>Rail</td><td>1450,9 kg</td><td>R 607,72</td><td>In transit</td></tr>
+<tr><td>SH-40134</td><td>18/09/2026</td><td>Eastern Cape</td><td>East London</td><td>Overnight van</td><td>810,2 kg</td><td>R 7 243,13</td><td>Returned</td></tr>
+<tr><td>SH-40135</td><td>05/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>548,1 kg</td><td>R 427,97</td><td>Delivered</td></tr>
+<tr><td>SH-40136</td><td>01/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>1093,9 kg</td><td>R 3 018,60</td><td>In transit</td></tr>
+<tr><td>SH-40137</td><td>07/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>848,9 kg</td><td>R 4 153,46</td><td>Out for delivery</td></tr>
+<tr><td>SH-40138</td><td>01/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Rail</td><td>1186,4 kg</td><td>R 5 060,33</td><td>Returned</td></tr>
+<tr><td>SH-40139</td><td>14/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>726,6 kg</td><td>R 824,48</td><td>Delayed</td></tr>
+<tr><td>SH-40140</td><td>10/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Rail</td><td>929,1 kg</td><td>R 554,33</td><td>Out for delivery</td></tr>
+<tr><td>SH-40141</td><td>19/11/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Bakkie courier</td><td>518,1 kg</td><td>R 5 227,49</td><td>Delivered</td></tr>
+<tr><td>SH-40142</td><td>20/11/2026</td><td>Gauteng</td><td>Midrand</td><td>Bakkie courier</td><td>179,6 kg</td><td>R 8 492,30</td><td>Delayed</td></tr>
+<tr><td>SH-40143</td><td>07/09/2026</td><td>Gauteng</td><td>Midrand</td><td>Overnight van</td><td>1009,6 kg</td><td>R 1 771,26</td><td>Delayed</td></tr>
+<tr><td>SH-40144</td><td>23/09/2026</td><td>Western Cape</td><td>Bellville</td><td>Road freight</td><td>867,1 kg</td><td>R 5 224,09</td><td>Delayed</td></tr>
+<tr><td>SH-40145</td><td>04/10/2026</td><td>North West</td><td>Brits</td><td>Road freight</td><td>845,8 kg</td><td>R 5 664,85</td><td>Returned</td></tr>
+<tr><td>SH-40146</td><td>11/11/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Bakkie courier</td><td>1046,4 kg</td><td>R 1 886,58</td><td>Delivered</td></tr>
+<tr><td>SH-40147</td><td>14/11/2026</td><td>Free State</td><td>Welkom</td><td>Bakkie courier</td><td>123,9 kg</td><td>R 3 633,73</td><td>Delivered</td></tr>
+<tr><td>SH-40148</td><td>14/10/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>1354,4 kg</td><td>R 9 095,77</td><td>Returned</td></tr>
+<tr><td>SH-40149</td><td>16/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Bakkie courier</td><td>1336,0 kg</td><td>R 7 380,50</td><td>Returned</td></tr>
+<tr><td>SH-40150</td><td>12/09/2026</td><td>Western Cape</td><td>Bellville</td><td>Road freight</td><td>903,1 kg</td><td>R 7 750,49</td><td>Delayed</td></tr>
+<tr><td>SH-40151</td><td>25/08/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Rail</td><td>888,0 kg</td><td>R 2 169,34</td><td>Returned</td></tr>
+<tr><td>SH-40152</td><td>21/10/2026</td><td>North West</td><td>Brits</td><td>Road freight</td><td>183,8 kg</td><td>R 7 574,42</td><td>Delivered</td></tr>
+<tr><td>SH-40153</td><td>23/08/2026</td><td>Free State</td><td>Welkom</td><td>Overnight van</td><td>686,5 kg</td><td>R 1 764,94</td><td>Delivered</td></tr>
+<tr><td>SH-40154</td><td>14/09/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>1206,6 kg</td><td>R 1 690,97</td><td>In transit</td></tr>
+<tr><td>SH-40155</td><td>05/08/2026</td><td>Western Cape</td><td>Bellville</td><td>Road freight</td><td>1359,9 kg</td><td>R 2 760,51</td><td>In transit</td></tr>
+<tr><td>SH-40156</td><td>13/10/2026</td><td>Eastern Cape</td><td>East London</td><td>Road freight</td><td>1085,0 kg</td><td>R 4 459,91</td><td>In transit</td></tr>
+<tr><td>SH-40157</td><td>25/11/2026</td><td>Gauteng</td><td>Midrand</td><td>Road freight</td><td>118,6 kg</td><td>R 1 962,27</td><td>In transit</td></tr>
+<tr><td>SH-40158</td><td>02/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>560,8 kg</td><td>R 2 379,08</td><td>Returned</td></tr>
+<tr><td>SH-40159</td><td>28/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Road freight</td><td>509,8 kg</td><td>R 4 433,11</td><td>Out for delivery</td></tr>
+<tr><td>SH-40160</td><td>25/11/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>458,8 kg</td><td>R 3 644,79</td><td>In transit</td></tr>
+<tr><td>SH-40161</td><td>10/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Road freight</td><td>693,0 kg</td><td>R 6 911,90</td><td>Delivered</td></tr>
+<tr><td>SH-40162</td><td>03/10/2026</td><td>Gauteng</td><td>Midrand</td><td>Bakkie courier</td><td>1088,2 kg</td><td>R 6 345,33</td><td>Out for delivery</td></tr>
+<tr><td>SH-40163</td><td>17/10/2026</td><td>Eastern Cape</td><td>East London</td><td>Overnight van</td><td>1356,4 kg</td><td>R 9 291,73</td><td>Returned</td></tr>
+<tr><td>SH-40164</td><td>06/10/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Bakkie courier</td><td>1079,5 kg</td><td>R 3 408,64</td><td>Delivered</td></tr>
+<tr><td>SH-40165</td><td>06/08/2026</td><td>Eastern Cape</td><td>East London</td><td>Rail</td><td>207,7 kg</td><td>R 9 135,20</td><td>Delayed</td></tr>
+<tr><td>SH-40166</td><td>01/08/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Bakkie courier</td><td>524,9 kg</td><td>R 912,09</td><td>Delayed</td></tr>
+<tr><td>SH-40167</td><td>09/11/2026</td><td>Gauteng</td><td>Midrand</td><td>Road freight</td><td>669,9 kg</td><td>R 4 903,03</td><td>In transit</td></tr>
+<tr><td>SH-40168</td><td>01/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Rail</td><td>452,0 kg</td><td>R 2 365,21</td><td>Out for delivery</td></tr>
+<tr><td>SH-40169</td><td>04/09/2026</td><td>Western Cape</td><td>Bellville</td><td>Road freight</td><td>1437,3 kg</td><td>R 4 148,33</td><td>Delayed</td></tr>
+<tr><td>SH-40170</td><td>09/10/2026</td><td>Western Cape</td><td>Bellville</td><td>Road freight</td><td>555,5 kg</td><td>R 5 669,48</td><td>Returned</td></tr>
+<tr><td>SH-40171</td><td>01/11/2026</td><td>North West</td><td>Brits</td><td>Rail</td><td>1105,2 kg</td><td>R 7 458,32</td><td>Returned</td></tr>
+<tr><td>SH-40172</td><td>25/10/2026</td><td>Western Cape</td><td>Bellville</td><td>Overnight van</td><td>473,0 kg</td><td>R 818,45</td><td>Delivered</td></tr>
+<tr><td>SH-40173</td><td>21/10/2026</td><td>Free State</td><td>Welkom</td><td>Rail</td><td>333,8 kg</td><td>R 7 682,46</td><td>Delayed</td></tr>
+<tr><td>SH-40174</td><td>06/10/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Road freight</td><td>1368,6 kg</td><td>R 3 200,70</td><td>Delayed</td></tr>
+<tr><td>SH-40175</td><td>28/09/2026</td><td>Gauteng</td><td>Midrand</td><td>Rail</td><td>794,3 kg</td><td>R 7 446,78</td><td>Delivered</td></tr>
+<tr><td>SH-40176</td><td>11/08/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Rail</td><td>1307,3 kg</td><td>R 1 983,86</td><td>In transit</td></tr>
+<tr><td>SH-40177</td><td>06/08/2026</td><td>Western Cape</td><td>Bellville</td><td>Rail</td><td>23,0 kg</td><td>R 6 392,69</td><td>In transit</td></tr>
+<tr><td>SH-40178</td><td>13/11/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Overnight van</td><td>626,6 kg</td><td>R 8 463,34</td><td>Out for delivery</td></tr>
+<tr><td>SH-40179</td><td>15/10/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>1337,2 kg</td><td>R 2 270,38</td><td>Delivered</td></tr>
+<tr><td>SH-40180</td><td>01/09/2026</td><td>North West</td><td>Brits</td><td>Road freight</td><td>754,8 kg</td><td>R 1 431,25</td><td>Delayed</td></tr>
+<tr><td>SH-40181</td><td>18/09/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Rail</td><td>1093,0 kg</td><td>R 9 236,89</td><td>Out for delivery</td></tr>
+<tr><td>SH-40182</td><td>10/10/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Overnight van</td><td>903,7 kg</td><td>R 4 132,78</td><td>Delivered</td></tr>
+<tr><td>SH-40183</td><td>15/10/2026</td><td>Eastern Cape</td><td>East London</td><td>Road freight</td><td>92,4 kg</td><td>R 8 131,93</td><td>Delayed</td></tr>
+<tr><td>SH-40184</td><td>13/10/2026</td><td>Northern Cape</td><td>Upington</td><td>Rail</td><td>443,3 kg</td><td>R 1 405,33</td><td>In transit</td></tr>
+<tr><td>SH-40185</td><td>24/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>232,4 kg</td><td>R 1 005,71</td><td>Delayed</td></tr>
+<tr><td>SH-40186</td><td>05/09/2026</td><td>Northern Cape</td><td>Upington</td><td>Bakkie courier</td><td>1012,2 kg</td><td>R 5 113,89</td><td>Delivered</td></tr>
+<tr><td>SH-40187</td><td>09/08/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>1183,8 kg</td><td>R 1 027,36</td><td>Returned</td></tr>
+<tr><td>SH-40188</td><td>12/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Road freight</td><td>248,0 kg</td><td>R 6 180,14</td><td>Returned</td></tr>
+<tr><td>SH-40189</td><td>15/10/2026</td><td>Western Cape</td><td>Bellville</td><td>Rail</td><td>639,9 kg</td><td>R 6 584,95</td><td>Returned</td></tr>
+<tr><td>SH-40190</td><td>21/09/2026</td><td>North West</td><td>Brits</td><td>Bakkie courier</td><td>645,7 kg</td><td>R 2 527,42</td><td>Out for delivery</td></tr>
+<tr><td>SH-40191</td><td>02/11/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Bakkie courier</td><td>250,2 kg</td><td>R 5 773,58</td><td>In transit</td></tr>
+<tr><td>SH-40192</td><td>18/10/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>397,8 kg</td><td>R 2 903,90</td><td>Delivered</td></tr>
+<tr><td>SH-40193</td><td>19/08/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Road freight</td><td>289,4 kg</td><td>R 7 631,76</td><td>Out for delivery</td></tr>
+<tr><td>SH-40194</td><td>07/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Rail</td><td>283,1 kg</td><td>R 8 977,22</td><td>Out for delivery</td></tr>
+<tr><td>SH-40195</td><td>02/11/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Bakkie courier</td><td>1277,1 kg</td><td>R 2 303,17</td><td>Returned</td></tr>
+<tr><td>SH-40196</td><td>15/09/2026</td><td>Free State</td><td>Welkom</td><td>Overnight van</td><td>643,7 kg</td><td>R 8 290,18</td><td>Out for delivery</td></tr>
+<tr><td>SH-40197</td><td>10/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>1345,1 kg</td><td>R 7 645,57</td><td>Delivered</td></tr>
+<tr><td>SH-40198</td><td>17/09/2026</td><td>North West</td><td>Brits</td><td>Rail</td><td>408,3 kg</td><td>R 6 004,49</td><td>Delivered</td></tr>
+<tr><td>SH-40199</td><td>07/11/2026</td><td>Free State</td><td>Welkom</td><td>Bakkie courier</td><td>964,3 kg</td><td>R 1 557,02</td><td>Delayed</td></tr>
+<tr><td>SH-40200</td><td>11/09/2026</td><td>Western Cape</td><td>Bellville</td><td>Bakkie courier</td><td>725,7 kg</td><td>R 6 211,87</td><td>In transit</td></tr>
+<tr><td>SH-40201</td><td>19/10/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>287,6 kg</td><td>R 915,32</td><td>Delivered</td></tr>
+<tr><td>SH-40202</td><td>27/10/2026</td><td>North West</td><td>Brits</td><td>Bakkie courier</td><td>114,9 kg</td><td>R 1 735,57</td><td>In transit</td></tr>
+<tr><td>SH-40203</td><td>26/09/2026</td><td>Free State</td><td>Welkom</td><td>Road freight</td><td>1142,2 kg</td><td>R 1 606,38</td><td>Delivered</td></tr>
+<tr><td>SH-40204</td><td>06/09/2026</td><td>Gauteng</td><td>Midrand</td><td>Road freight</td><td>937,4 kg</td><td>R 8 354,17</td><td>Returned</td></tr>
+<tr><td>SH-40205</td><td>16/08/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>1319,3 kg</td><td>R 7 924,09</td><td>Returned</td></tr>
+<tr><td>SH-40206</td><td>21/09/2026</td><td>Northern Cape</td><td>Upington</td><td>Bakkie courier</td><td>1324,2 kg</td><td>R 4 229,13</td><td>Delayed</td></tr>
+<tr><td>SH-40207</td><td>22/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>1366,5 kg</td><td>R 6 135,38</td><td>In transit</td></tr>
+<tr><td>SH-40208</td><td>27/09/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>499,6 kg</td><td>R 3 182,76</td><td>In transit</td></tr>
+<tr><td>SH-40209</td><td>28/08/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Bakkie courier</td><td>284,9 kg</td><td>R 1 692,33</td><td>In transit</td></tr>
+<tr><td>SH-40210</td><td>28/10/2026</td><td>Eastern Cape</td><td>East London</td><td>Rail</td><td>561,7 kg</td><td>R 3 529,38</td><td>Out for delivery</td></tr>
+<tr><td>SH-40211</td><td>06/08/2026</td><td>Gauteng</td><td>Midrand</td><td>Bakkie courier</td><td>1029,1 kg</td><td>R 4 515,36</td><td>Delivered</td></tr>
+<tr><td>SH-40212</td><td>11/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Bakkie courier</td><td>518,4 kg</td><td>R 2 383,47</td><td>In transit</td></tr>
+<tr><td>SH-40213</td><td>15/11/2026</td><td>Western Cape</td><td>Bellville</td><td>Road freight</td><td>1252,4 kg</td><td>R 2 641,15</td><td>Returned</td></tr>
+<tr><td>SH-40214</td><td>08/10/2026</td><td>Gauteng</td><td>Midrand</td><td>Overnight van</td><td>1345,7 kg</td><td>R 2 531,30</td><td>In transit</td></tr>
+<tr><td>SH-40215</td><td>26/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>88,7 kg</td><td>R 8 202,29</td><td>In transit</td></tr>
+<tr><td>SH-40216</td><td>13/10/2026</td><td>Western Cape</td><td>Bellville</td><td>Bakkie courier</td><td>1263,1 kg</td><td>R 629,67</td><td>Returned</td></tr>
+<tr><td>SH-40217</td><td>17/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Bakkie courier</td><td>662,6 kg</td><td>R 5 456,61</td><td>Out for delivery</td></tr>
+<tr><td>SH-40218</td><td>22/09/2026</td><td>Eastern Cape</td><td>East London</td><td>Overnight van</td><td>857,5 kg</td><td>R 1 064,27</td><td>In transit</td></tr>
+<tr><td>SH-40219</td><td>05/10/2026</td><td>North West</td><td>Brits</td><td>Bakkie courier</td><td>935,9 kg</td><td>R 1 288,43</td><td>Out for delivery</td></tr>
+<tr><td>SH-40220</td><td>26/10/2026</td><td>Free State</td><td>Welkom</td><td>Rail</td><td>1263,3 kg</td><td>R 7 233,71</td><td>Returned</td></tr>
+<tr><td>SH-40221</td><td>11/08/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Road freight</td><td>468,9 kg</td><td>R 1 736,61</td><td>Out for delivery</td></tr>
+<tr><td>SH-40222</td><td>13/11/2026</td><td>Gauteng</td><td>Midrand</td><td>Road freight</td><td>622,5 kg</td><td>R 5 500,31</td><td>In transit</td></tr>
+<tr><td>SH-40223</td><td>27/11/2026</td><td>Eastern Cape</td><td>East London</td><td>Bakkie courier</td><td>1219,0 kg</td><td>R 5 739,56</td><td>Returned</td></tr>
+<tr><td>SH-40224</td><td>28/11/2026</td><td>Western Cape</td><td>Bellville</td><td>Rail</td><td>288,4 kg</td><td>R 6 938,51</td><td>In transit</td></tr>
+<tr><td>SH-40225</td><td>20/11/2026</td><td>Eastern Cape</td><td>East London</td><td>Overnight van</td><td>401,1 kg</td><td>R 5 701,28</td><td>Delivered</td></tr>
+<tr><td>SH-40226</td><td>22/10/2026</td><td>Free State</td><td>Welkom</td><td>Rail</td><td>1395,8 kg</td><td>R 493,13</td><td>Delivered</td></tr>
+<tr><td>SH-40227</td><td>12/09/2026</td><td>Limpopo</td><td>Tzaneen</td><td>Overnight van</td><td>1172,3 kg</td><td>R 4 149,03</td><td>Delivered</td></tr>
+<tr><td>SH-40228</td><td>15/11/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Road freight</td><td>1381,5 kg</td><td>R 3 805,66</td><td>In transit</td></tr>
+<tr><td>SH-40229</td><td>04/11/2026</td><td>Free State</td><td>Welkom</td><td>Bakkie courier</td><td>1048,2 kg</td><td>R 1 748,45</td><td>Delayed</td></tr>
+<tr><td>SH-40230</td><td>05/09/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Rail</td><td>807,7 kg</td><td>R 5 754,36</td><td>Out for delivery</td></tr>
+<tr><td>SH-40231</td><td>03/11/2026</td><td>Eastern Cape</td><td>East London</td><td>Road freight</td><td>47,6 kg</td><td>R 7 939,80</td><td>Out for delivery</td></tr>
+<tr><td>SH-40232</td><td>22/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>236,1 kg</td><td>R 856,30</td><td>Delivered</td></tr>
+<tr><td>SH-40233</td><td>03/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>520,5 kg</td><td>R 1 735,16</td><td>Delivered</td></tr>
+<tr><td>SH-40234</td><td>23/09/2026</td><td>North West</td><td>Brits</td><td>Bakkie courier</td><td>1087,1 kg</td><td>R 2 673,09</td><td>Returned</td></tr>
+<tr><td>SH-40235</td><td>09/08/2026</td><td>Gauteng</td><td>Midrand</td><td>Road freight</td><td>114,0 kg</td><td>R 9 245,86</td><td>Returned</td></tr>
+<tr><td>SH-40236</td><td>14/10/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Bakkie courier</td><td>1314,4 kg</td><td>R 420,92</td><td>Out for delivery</td></tr>
+<tr><td>SH-40237</td><td>28/09/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Bakkie courier</td><td>1160,7 kg</td><td>R 6 566,68</td><td>Delivered</td></tr>
+<tr><td>SH-40238</td><td>08/10/2026</td><td>North West</td><td>Brits</td><td>Overnight van</td><td>1192,4 kg</td><td>R 5 485,05</td><td>Out for delivery</td></tr>
+<tr><td>SH-40239</td><td>17/10/2026</td><td>North West</td><td>Brits</td><td>Overnight van</td><td>804,3 kg</td><td>R 7 804,09</td><td>In transit</td></tr>
+<tr><td>SH-40240</td><td>09/09/2026</td><td>Free State</td><td>Welkom</td><td>Overnight van</td><td>418,3 kg</td><td>R 2 054,44</td><td>Delivered</td></tr>
+<tr><td>SH-40241</td><td>02/11/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>1087,6 kg</td><td>R 9 374,17</td><td>In transit</td></tr>
+<tr><td>SH-40242</td><td>10/11/2026</td><td>Free State</td><td>Welkom</td><td>Bakkie courier</td><td>244,9 kg</td><td>R 1 997,62</td><td>Returned</td></tr>
+<tr><td>SH-40243</td><td>21/11/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Overnight van</td><td>747,0 kg</td><td>R 2 888,04</td><td>In transit</td></tr>
+<tr><td>SH-40244</td><td>23/08/2026</td><td>KwaZulu-Natal</td><td>Pinetown</td><td>Overnight van</td><td>1388,0 kg</td><td>R 4 772,77</td><td>Delayed</td></tr>
+<tr><td>SH-40245</td><td>04/11/2026</td><td>Eastern Cape</td><td>East London</td><td>Overnight van</td><td>819,9 kg</td><td>R 5 062,24</td><td>Returned</td></tr>
+<tr><td>SH-40246</td><td>04/09/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Overnight van</td><td>367,7 kg</td><td>R 6 376,95</td><td>Out for delivery</td></tr>
+<tr><td>SH-40247</td><td>09/10/2026</td><td>Eastern Cape</td><td>East London</td><td>Bakkie courier</td><td>1135,9 kg</td><td>R 8 214,65</td><td>Out for delivery</td></tr>
+<tr><td>SH-40248</td><td>19/08/2026</td><td>Eastern Cape</td><td>East London</td><td>Rail</td><td>114,8 kg</td><td>R 4 267,04</td><td>Delayed</td></tr>
+<tr><td>SH-40249</td><td>10/08/2026</td><td>Eastern Cape</td><td>East London</td><td>Overnight van</td><td>487,3 kg</td><td>R 907,74</td><td>In transit</td></tr>
+<tr><td>SH-40250</td><td>05/08/2026</td><td>Free State</td><td>Welkom</td><td>Rail</td><td>299,9 kg</td><td>R 8 803,49</td><td>Returned</td></tr>
+<tr><td>SH-40251</td><td>11/09/2026</td><td>Free State</td><td>Welkom</td><td>Overnight van</td><td>1353,7 kg</td><td>R 2 855,30</td><td>Returned</td></tr>
+<tr><td>SH-40252</td><td>07/08/2026</td><td>Northern Cape</td><td>Upington</td><td>Overnight van</td><td>1367,6 kg</td><td>R 5 651,92</td><td>Returned</td></tr>
+<tr><td>SH-40253</td><td>24/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Rail</td><td>1199,9 kg</td><td>R 6 790,91</td><td>Out for delivery</td></tr>
+<tr><td>SH-40254</td><td>24/11/2026</td><td>Eastern Cape</td><td>East London</td><td>Overnight van</td><td>515,7 kg</td><td>R 4 702,08</td><td>In transit</td></tr>
+<tr><td>SH-40255</td><td>12/09/2026</td><td>Mpumalanga</td><td>Witbank</td><td>Rail</td><td>1324,5 kg</td><td>R 282,46</td><td>In transit</td></tr>
+<tr><td>SH-40256</td><td>22/09/2026</td><td>Free State</td><td>Welkom</td><td>Bakkie courier</td><td>893,1 kg</td><td>R 1 004,11</td><td>Delayed</td></tr>
+<tr><td>SH-40257</td><td>25/08/2026</td><td>North West</td><td>Brits</td><td>Overnight van</td><td>1311,2 kg</td><td>R 4 340,23</td><td>Delivered</td></tr>
+<tr><td>SH-40258</td><td>23/08/2026</td><td>Eastern Cape</td><td>East London</td><td>Rail</td><td>341,7 kg</td><td>R 3 352,87</td><td>Delivered</td></tr>
+<tr><td>SH-40259</td><td>04/11/2026</td><td>Northern Cape</td><td>Upington</td><td>Road freight</td><td>788,4 kg</td><td>R 5 983,07</td><td>Returned</td></tr>
+<tr><td>SH-40260</td><td>09/09/2026</td><td>Gauteng</td><td>Midrand</td><td>Rail</td><td>467,0 kg</td><td>R 1 247,31</td><td>Delivered</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="events">
+  <h2>4. A list that is not a table <span class="badge device">Runs on device</span></h2>
+  <p class="lede">Cards built from plain <code>div</code> elements. Tabletidy detects the repeated layout and turns it into rows and columns.</p>
+  <div class="listing">
+    <div class="event"><h3>Spreadsheet clinic for small shops</h3><span class="when">Sat 21 Nov 2026</span><span class="where">Braamfontein</span><span class="price">R 150,00</span><span class="seats">24 seats</span></div>
+    <div class="event"><h3>Intro to pivot tables</h3><span class="when">Tue 24 Nov 2026</span><span class="where">Online</span><span class="price">Free</span><span class="seats">200 seats</span></div>
+    <div class="event"><h3>Stocktake without tears</h3><span class="when">Thu 26 Nov 2026</span><span class="where">Durban North</span><span class="price">R 320,00</span><span class="seats">16 seats</span></div>
+    <div class="event"><h3>Clean data for bookkeepers</h3><span class="when">Mon 30 Nov 2026</span><span class="where">Online</span><span class="price">R 95,00</span><span class="seats">120 seats</span></div>
+    <div class="event"><h3>Charts people can read</h3><span class="when">Wed 02 Dec 2026</span><span class="where">Sea Point</span><span class="price">R 280,00</span><span class="seats">30 seats</span></div>
+    <div class="event"><h3>Year-end reporting sprint</h3><span class="when">Fri 04 Dec 2026</span><span class="where">Hatfield</span><span class="price">R 450,00</span><span class="seats">12 seats</span></div>
+    <div class="event"><h3>Importing bank statements</h3><span class="when">Tue 08 Dec 2026</span><span class="where">Online</span><span class="price">Free</span><span class="seats">300 seats</span></div>
+    <div class="event"><h3>Price lists that stay tidy</h3><span class="when">Thu 10 Dec 2026</span><span class="where">Nelspruit</span><span class="price">R 180,00</span><span class="seats">20 seats</span></div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">
+  Tabletidy is an entry for #BuildHybridAI 2026, built by SKILLMERC with an AI coding agent. Open source under Apache 2.0:
+  <a href="https://github.com/skillmerc/tabletidy">github.com/skillmerc/tabletidy</a>. All data on this page is invented sample data.
+</div></footer>
+</body>
+</html>

@@ -48,3 +48,13 @@ test("normalises by type and keeps unparseable text", () => {
   assert.equal(normalise("+27 (66) 215-0000", "phone"), "+27662150000");
   assert.equal(normalise("tbc", "date"), "tbc");
 });
+
+test("parseDate ignores a leading weekday", async () => {
+  const { parseDate } = await import("../src/lib/infer.js");
+  const { default: assert } = await import("node:assert/strict");
+  assert.equal(parseDate("Sat 21 Nov 2026"), "2026-11-21");
+  assert.equal(parseDate("Monday, 3 March 2026"), "2026-03-03");
+  assert.equal(parseDate("Wed 02/12/2026"), "2026-12-02");
+  assert.equal(parseDate("Sunny 2026"), null);
+  assert.equal(parseDate("Mar 2026"), "2026-03-01");
+});

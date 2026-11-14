@@ -10,3 +10,5 @@ HANDOFF.md
 extension/dist/
 *.pem
 extension-pubkey.txt
+chrome-profile/
+docs/KYLE-ON-DEVICE-STEPS.md

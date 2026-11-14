@@ -2,6 +2,7 @@
 // Used two ways: (1) as the fallback when no model answers, (2) to turn the model's
 // per-column type into clean values on export. No network, no model.
 
+const WEEKDAY = /^(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?,?\s+(?=\d|[a-z]{3})/i;
 export const TYPES = ["text", "number", "money", "percent", "date", "email", "phone", "url"];
 
 const RE = {
@@ -24,7 +25,8 @@ export function classifyValue(raw) {
   if (RE.email.test(v)) return "email";
   if (RE.url.test(v)) return "url";
   if (RE.percent.test(v)) return "percent";
-  if (RE.isoDate.test(v) || RE.dmyDate.test(v) || RE.textDate.test(v)) return "date";
+  const d = v.replace(WEEKDAY, "");
+  if (RE.isoDate.test(d) || RE.dmyDate.test(d) || RE.textDate.test(d)) return "date";
   if (RE.number.test(v)) return "number";
   if (RE.money.test(v)) return "money";
   const digits = v.replace(/\D/g, "").length;
@@ -76,7 +78,8 @@ const pad = (n) => String(n).padStart(2, "0");
 
 /** Normalise a date string to YYYY-MM-DD. dayFirst decides 03/11/2026 (default true). */
 export function parseDate(raw, dayFirst = true) {
-  const v = String(raw ?? "").trim();
+  // A leading weekday ("Sat 21 Nov 2026", "Monday, 3 March 2026") carries no extra information.
+  const v = String(raw ?? "").trim().replace(WEEKDAY, "");
   let m = v.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
   if (m) return `${m[1]}-${pad(m[2])}-${pad(m[3])}`;
   m = v.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
