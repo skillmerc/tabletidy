@@ -133,7 +133,7 @@ nav a { color:var(--muted); }
   <h1>Pick a table on any web page. Get a clean spreadsheet.</h1>
   <ul>
     <li>Tabletidy is a Chrome extension that finds the tables and repeated lists on a page and lets you pick one.</li>
-    <li>Gemini Nano names and types the columns on your device in about a second. Nothing is uploaded for small tables.</li>
+    <li>Gemini Nano names and types the columns on your device. Nothing is uploaded for small tables.</li>
     <li>Large tables go to Gemini in the cloud through Firebase AI Logic, with personal-data columns masked before the request is built.</li>
     <li>Every run shows an On device or Cloud badge with the reason, then exports CSV or JSON with real numbers and ISO dates.</li>
   </ul>
