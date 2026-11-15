@@ -4,6 +4,10 @@
 
 **Try it now, no install: https://tabletidy-82369.web.app**
 
+Quick links: [hosted demo](https://tabletidy-82369.web.app) | [demo video on YouTube, under 3 minutes](https://youtu.be/VNwqPNHGVxk) | [Devpost entry](https://devpost.com/software/tabletidy)
+
+The demo video shows cloud runs only. No successful on-device run has been recorded yet.
+
 Tabletidy is a web app and a Chrome extension built for #BuildHybridAI 2026. Give it a table (pick a sample, paste HTML, CSV or rows copied from a spreadsheet, or scan any web page with the extension). It proposes clean column names, a type for every column (date, money, number, percent, email, phone, URL, text) and flags columns that hold personal data. Edit anything, then export CSV or JSON with real numbers and ISO dates instead of `"R 1 234,50"` and `03 Nov 2026`.
 
 ![A run that fell back from the on-device model to the cloud, with the reason in the badge](docs/screens/02-fallback-reason.png)
