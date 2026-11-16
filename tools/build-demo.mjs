@@ -155,7 +155,7 @@ a { color:var(--brand); }
 <div class="hero">
   <h1>Turn a messy table into a clean spreadsheet, without leaking the personal data in it.</h1>
   <p>Pick a sample or paste your own table. Tabletidy names and types the columns, flags personal data and exports clean CSV or JSON. It runs right here in the page, no install and no account.</p>
-  <ul class="facts"><li class="device">Small tables: Gemini Nano on your device</li><li class="cloud">Large tables: Gemini in the cloud</li><li class="pii">Personal data masked before any cloud request</li></ul>
+  <ul class="facts"><li class="device">Small tables: Gemini Nano on your device first</li><li class="cloud">Large tables: Gemini in the cloud</li><li class="pii">Personal data masked before any cloud request</li></ul>
 </div>
 
 <section id="try">
@@ -210,16 +210,16 @@ a { color:var(--brand); }
 </section>
 
 <section id="events">
-  <h2 class="sec">A list that is not a table <span class="tag device">Extension</span></h2>
-  <p class="lede">Cards built from plain <code>div</code> elements. The Tabletidy extension detects the repeated layout on any page and turns it into rows and columns.</p>
+  <h2 class="sec">A list that is not a table <span class="tag device">Extension source</span></h2>
+  <p class="lede">Cards built from plain <code>div</code> elements. The page scanner in the repo detects a repeated layout like this one and turns it into rows and columns (covered by the unit tests). It belongs to the experimental extension source; this hosted app works on samples and pasted tables.</p>
   <div class="listing">
 ${listings.map((l) => `    <div class="event"><h3>${esc(l[0])}</h3><span class="when">${l[1]}</span><span class="where">${l[2]}</span><span class="price">${l[3]}</span><span class="seats">${l[4]}</span></div>`).join("\n")}
   </div>
 </section>
 
 <section id="install">
-  <h2 class="sec">Also a Chrome extension</h2>
-  <p class="lede">The same code runs in a Chrome side panel, where it scans whatever page you are on and lets you pick one of the tables or repeated lists it finds. It is loaded unpacked in desktop Google Chrome 139 or newer. Full setup is in the <a href="https://github.com/skillmerc/tabletidy#extension-setup">README</a>.</p>
+  <h2 class="sec">Experimental: Chrome extension source</h2>
+  <p class="lede">The repo also holds source for a Chrome side panel that scans the page you are on. It has not been tested as an installed extension, so the steps below are unverified and it is not part of what this page demonstrates. Full setup is in the <a href="https://github.com/skillmerc/tabletidy#extension-setup">README</a>.</p>
   <div class="panel"><ol class="steps">
     <li>Clone <a href="https://github.com/skillmerc/tabletidy">github.com/skillmerc/tabletidy</a>, add your Firebase web config, then run <code>npm install</code> and <code>npm run build:ext</code>.</li>
     <li>Open <code>chrome://extensions</code>, turn on Developer mode, click <em>Load unpacked</em> and choose <code>extension/dist</code>.</li>

@@ -4,13 +4,13 @@
 
 **Try it now, no install: https://tabletidy-82369.web.app**
 
-Quick links: [hosted demo](https://tabletidy-82369.web.app) | [demo video on YouTube, under 3 minutes](https://youtu.be/VNwqPNHGVxk) | [Devpost entry](https://devpost.com/software/tabletidy)
+Quick links: [hosted demo](https://tabletidy-82369.web.app) | [demo video on YouTube, under 3 minutes](https://youtu.be/Z9hotXiocb0) | [Devpost entry](https://devpost.com/software/tabletidy)
 
-The demo video shows cloud runs only. No successful on-device run has been recorded yet.
+Every result in the demo video came from the cloud; the one on-device attempt in it was rejected. No successful on-device run has been recorded yet.
 
-Tabletidy is a web app and a Chrome extension built for #BuildHybridAI 2026. Give it a table (pick a sample, paste HTML, CSV or rows copied from a spreadsheet, or scan any web page with the extension). It proposes clean column names, a type for every column (date, money, number, percent, email, phone, URL, text) and flags columns that hold personal data. Edit anything, then export CSV or JSON with real numbers and ISO dates instead of `"R 1 234,50"` and `03 Nov 2026`.
+Tabletidy is a web app built for #BuildHybridAI 2026. The repo also holds experimental Chrome extension source that has not been tested as an installed extension. Give it a table (pick a sample, or paste HTML, CSV or rows copied from a spreadsheet). It proposes clean column names, a type for every column (date, money, number, percent, email, phone, URL, text) and flags columns that hold personal data. Edit anything, then export CSV or JSON with real numbers and ISO dates instead of `"R 1 234,50"` and `03 Nov 2026`.
 
-![A run that fell back from the on-device model to the cloud, with the reason in the badge](docs/screens/02-fallback-reason.png)
+![A cryptic price list tidied in one click: clear column names, types, real numbers and ISO dates](docs/screens/08-price-list-tidied.png)
 
 ## Try it (hosted, about one minute)
 
@@ -21,6 +21,8 @@ Tabletidy is a web app and a Chrome extension built for #BuildHybridAI 2026. Giv
 5. Try **Shipment log** (2,080 cells): Auto mode sends it to the cloud and says why. Or paste your own table.
 
 The status line above the Tidy button shows the on-device model honestly: *not available in this browser*, *not downloaded yet* (with a **Download model** button, about 3 GB, one time), *downloading* with progress, or *ready*. No sign-in, no API key, nothing to configure: cloud calls from the hosted site are protected by Firebase App Check with reCAPTCHA Enterprise.
+
+![A run that fell back from the on-device model to the cloud, with the reason in the badge](docs/screens/02-fallback-reason.png)
 
 | Masked payload | Edit and export |
 |---|---|
@@ -34,7 +36,7 @@ More screenshots are in [`docs/screens`](docs/screens) (empty state, cloud run, 
 
 People who copy tables out of web pages and exports (sales ops, researchers, analysts, admins) spend their time renaming `col3` and `itm_cd` columns, fixing numbers with spaces and decimal commas, and deleting customer names and emails before they share a file. The third chore is the one that stops people pasting a table into a cloud AI tool at all. Tabletidy does all three in one click, and it does the sensitive part on the device:
 
-- **Small tables prefer Gemini Nano in Chrome**: the table never leaves the browser and the run costs nothing.
+- **Small tables go to Gemini Nano in Chrome first**: when the on-device model gives a valid answer, the table never leaves the browser. When it does not, the already-masked prompt is retried in the cloud and the badge says so.
 - **Large tables go to Gemini in the cloud** through Firebase AI Logic, because Nano has a small context window. Columns flagged as personal data are **masked on the device before the request is built**.
 - **Every run shows where it ran and why**: an `On device` or `Cloud` badge with the time and the reason ("Small table (72 cells)", "Large table (2,080 cells)", "Gemini Nano is not ready in this browser (downloadable), cloud fallback", "On-device answer failed validation (not JSON), cloud fallback").
 - **"What the model saw"** shows the exact prompt, masks included.
@@ -42,7 +44,7 @@ People who copy tables out of web pages and exports (sales ops, researchers, ana
 
 ## How Firebase AI Logic hybrid inference is used
 
-All runtime calls are in [`extension/src/ai.js`](extension/src/ai.js), one module shared by the hosted app and the extension:
+All runtime calls are in [`extension/src/ai.js`](extension/src/ai.js), the module the hosted app runs (the experimental extension source imports the same one):
 
 | What | Where |
 |---|---|
@@ -63,7 +65,7 @@ Routing, privacy and fallback are plain, unit-tested functions:
 - `runHybrid()` ([hybrid.js line 53](extension/src/lib/hybrid.js#L53)): if a `PREFER_ON_DEVICE` answer is empty, not JSON or fails validation, the same already-masked prompt is sent once with `ONLY_IN_CLOUD` and the badge gives the reason. `ONLY_ON_DEVICE` never falls back to the cloud; it keeps the device rules result and says so.
 - `mergeColumns()` ([tidy.js line 109](extension/src/lib/tidy.js#L109)): the model can rename, retype (only if the values actually parse as that type) and *add* personal-data flags. It can never remove a flag set by the on-device rules.
 
-The flow for one run: table in (sample, paste or page scan) -> on-device rules type every column and flag personal data ([`lib/infer.js`](extension/src/lib/infer.js), [`lib/pii.js`](extension/src/lib/pii.js)) -> route -> mask -> Firebase AI Logic hybrid call -> validate, cloud fallback if needed -> merge -> edit -> export. The view for all of that is [`extension/src/app.js`](extension/src/app.js), mounted by both surfaces.
+The flow for one run: table in (sample, paste or page scan) -> on-device rules type every column and flag personal data ([`lib/infer.js`](extension/src/lib/infer.js), [`lib/pii.js`](extension/src/lib/pii.js)) -> route -> mask -> Firebase AI Logic hybrid call -> validate, cloud fallback if needed -> merge -> edit -> export. The view for all of that is [`extension/src/app.js`](extension/src/app.js), mounted by the hosted app and by the experimental side panel source.
 
 ## What has been tested, and what has not
 
@@ -78,7 +80,7 @@ Not yet verified by us: a correct Gemini Nano answer in Google Chrome itself (so
 
 ## Extension setup
 
-The extension is the second surface: the same app in a Chrome side panel, fed by a page scanner that finds tables and repeated lists in any page. Requirements: Node 20+, desktop Google Chrome 139 or newer.
+Experimental and untested: this source has never been run as an installed extension, so the steps below are unverified. It puts the same app in a Chrome side panel, fed by a page scanner that finds tables and repeated lists in a page. Requirements: Node 20+, desktop Google Chrome 139 or newer.
 
 1. **Firebase project** (free Spark plan): create a project, add a Web app, open *AI Logic* and choose the Gemini Developer API. In *App Check*, register the web app and add a debug token.
 2. **Config**: `cp .env.example web/.env.local` and fill in the web app config. `VITE_APPCHECK_DEBUG_TOKEN` is optional; you can paste the debug token into the extension's Settings instead (extensions cannot run reCAPTCHA).
@@ -97,7 +99,7 @@ The extension ID is fixed by the `key` in [`extension/public/manifest.json`](ext
 
 Tabletidy reuses the scraping engine of SKILLMERC's existing **List & Table Scraper** browser extension (public on Firefox Add-ons, about 12 daily users). It brings the part that is not AI: finding repeated rows and tables in any DOM, extracting cells and links, and writing CSV/JSON. Reused files, unchanged and marked at the top: `extension/src/lib/detect.js`, `export.js`, `zip.js`, the icons and `tests/detect.test.mjs`.
 
-Built during the submission period (from 11 Nov 2026):
+Built during the submission period (from 13 Nov 2026):
 
 - Firebase project, AI Logic (Gemini Developer API), App Check (reCAPTCHA Enterprise and debug provider), API key restrictions, Hosting.
 - `ai.js`: Firebase AI Logic hybrid inference with structured output on both runtimes, model status and download.
@@ -111,7 +113,7 @@ Built during the submission period (from 11 Nov 2026):
 
 ## AI coding agent disclosure
 
-Most of the code in this repository was written by an AI coding agent (Aside, an agentic browser assistant running Anthropic's Claude) working for SKILLMERC, directed and reviewed by Kyle Pretorius. The agent also set up the Firebase project and the API key restrictions through the consoles. No other pre-existing code is included beyond the List & Table Scraper engine listed above and the open-source npm dependencies in `package.json`.
+Most of the code in this repository was written by an AI coding agent (Aside, an agentic browser assistant running Anthropic's Claude) working for SKILLMERC (Representative: Kyle Pretorius). The agent also set up the Firebase project and the API key restrictions through the consoles. No other pre-existing code is included beyond the List & Table Scraper engine listed above and the open-source npm dependencies in `package.json`.
 
 ## Privacy
 
