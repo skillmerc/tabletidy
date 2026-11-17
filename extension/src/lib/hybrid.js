@@ -3,7 +3,7 @@
 // Pure functions: the Firebase AI Logic call is injected (see runPrompt in ../ai.js), so the
 // fallback rules are unit tested in tests/hybrid.test.mjs without a browser.
 import { TYPES } from "./infer.js";
-import { route, localAnalysis, buildPrompt, mergeColumns } from "./tidy.js";
+import { route, localAnalysis, buildPrompt, mergeColumns, withPageFlags } from "./tidy.js";
 
 /**
  * Check a model answer against the response schema (RESPONSE_JSON_SCHEMA in tidy.js) and
@@ -222,13 +222,16 @@ export async function runHybrid(plan, promptText, { runPrompt, colCount, status,
 /**
  * The whole tidy step for one table: local rules -> route -> mask -> hybrid run -> merge.
  * table: { label, headers, rows }. pref: "auto" | "device" | "cloud".
- * deps: { runPrompt, deviceStatus, onProgress?, onStart?, onRetry?, isStrict?, sleep? }.
+ * deps: { runPrompt, deviceStatus, flags?, onProgress?, onStart?, onRetry?, isStrict?, sleep? }.
+ * deps.flags: the columns as the page shows them now ({ index, pii, piiBy }). A column flagged
+ * there, by hand or by an earlier model answer, is masked like one the device rules flag, and
+ * keeps its flag after the run.
  */
 export async function tidyTable(table, pref, deps) {
   // Strict mode is decided first, from the setting passed in and from the live setting.
   const strict = pref === "device" || deps.isStrict?.() === true;
   const plan = route(table.rows.length, table.headers.length, strict ? "device" : pref);
-  const local = localAnalysis(table.headers, table.rows);
+  const local = withPageFlags(localAnalysis(table.headers, table.rows), deps.flags);
   const prompt = buildPrompt(table.headers, table.rows, local, plan);
   const masked = plan.mask ? local.filter((c) => c.pii).map((c) => c.original || `col${c.index}`) : [];
   deps.onStart?.({ plan, masked });

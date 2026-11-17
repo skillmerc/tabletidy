@@ -119,7 +119,7 @@ Most of the code in this repository was written by an AI coding agent (Aside, an
 
 - The hosted app reads only what you paste or the sample you pick. The extension reads a page only after you click its toolbar button (`activeTab`).
 - On device only mode never sends table data anywhere.
-- In Auto and Cloud mode, columns that the on-device rules flag as personal data are replaced by placeholders before the prompt is built. You can flag or unflag any column by hand: that changes the export, not what the next run sends. Exports leave flagged columns out by default.
+- In Auto and Cloud mode, columns flagged as personal data, by the on-device rules or by hand, are replaced by placeholders before the prompt is built. You can flag or unflag any column, and exports leave flagged columns out by default.
 - Nothing is stored except, in the extension, the App Check debug token you paste into Settings.
 
 ## License

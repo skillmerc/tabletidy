@@ -29,6 +29,23 @@ export function localAnalysis(headers, rows) {
   });
 }
 
+/**
+ * The flags a run masks by: the device rules' flags plus the flags on the page (set by hand
+ * or by an earlier model answer). `flags` is the page's column list ({ index, pii, piiBy });
+ * anything else is ignored. A page flag can ADD a column. It can never remove a rule flag,
+ * so a hand unflag never sends more. Returns a new list; the inputs are not modified.
+ */
+export function withPageFlags(local, flags) {
+  if (!Array.isArray(flags)) return local;
+  const on = new Map(flags.filter((f) => f && Number.isInteger(f.index) && f.pii === true).map((f) => [f.index, f]));
+  return local.map((c) => {
+    const f = on.get(c.index);
+    if (c.pii || !f) return c;
+    const by = f.piiBy === "model" ? "model" : "you";
+    return { ...c, pii: true, piiBy: by, piiReason: by === "model" ? "flagged by the model" : "marked Personal by hand" };
+  });
+}
+
 /** Evenly spread sample so long tables show their start, middle and end. */
 export function sampleRows(rows, n) {
   if (rows.length <= n) return rows.slice();
@@ -104,7 +121,8 @@ export function typeFits(type, values) {
 
 /**
  * Merge model output into the local analysis. The model can rename, retype (if the values
- * fit) and ADD personal-data flags. It can never remove a flag set by the device rules.
+ * fit) and ADD personal-data flags. It can never remove a flag that `local` carries: one
+ * set by the device rules or one passed in from the page (see withPageFlags).
  */
 export function mergeColumns(local, model, rows) {
   const byIndex = new Map((model?.columns || []).map((c) => [c.index, c]));

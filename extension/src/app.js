@@ -2,7 +2,7 @@
 // Built during #BuildHybridAI 2026. Each surface only supplies a table ({ label, headers,
 // rows }) through setTable(); status, tidy, result, "What the model saw" and export are here.
 import { TYPES } from "./lib/infer.js";
-import { localAnalysis, exportTable } from "./lib/tidy.js";
+import { localAnalysis, exportTable, withPageFlags } from "./lib/tidy.js";
 import { tidyTable, MESSAGES } from "./lib/hybrid.js";
 import { toCSV, toJSON, toTSV } from "./lib/export.js";
 import * as realAI from "./ai.js";
@@ -129,11 +129,14 @@ export function createApp(root, { emptyText = "Pick a table to start.", ai = rea
         deviceStatus,
         isStrict,
         sleep,
+        // The flags on the page right now: a column marked Personal is masked on this run.
+        flags: state.columns.map((c) => ({ index: c.index, pii: c.pii, piiBy: c.piiBy })),
         onStart: ({ plan, masked }) => { $("tidy-msg").textContent = plan.mask ? `Masked ${masked.length} personal-data column${masked.length === 1 ? "" : "s"} on this device. Asking the model…` : "On device only: checking the built-in model…"; },
         onRetry: ({ text }) => { $("tidy-msg").textContent = text; },
       });
       if (state.table !== t) return; // the user picked another table meanwhile
-      state.columns = out.columns;
+      // A flag set by hand while the run was out is kept (state.columns is still the list the person clicked on).
+      state.columns = withPageFlags(out.columns, state.columns);
       state.title = out.title;
       render(out.run);
       $("tidy-msg").textContent = "";
