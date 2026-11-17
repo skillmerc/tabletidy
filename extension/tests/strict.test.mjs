@@ -23,7 +23,7 @@ test("REPRODUCTION: no LanguageModel object, On device only, Tidy columns on Cus
   assert.equal(out.run.source, "local", "the badge names no model answer");
   assert.equal(out.run.reachedCloud, false);
   assert.equal(out.run.sent, "", "nothing was sent to any model");
-  assert.equal(out.run.notice, "This browser has no built-in model, so On device only did not run and nothing was sent.");
+  assert.equal(out.run.notice, "This browser has no built-in model that is ready, so On device only did not run and nothing was sent.");
   assert.equal(out.run.choices, "Switch to Auto, or open this page in a browser that has Chrome's built-in model (Gemini Nano) ready.");
   assert.equal(out.run.action, "auto");
 });

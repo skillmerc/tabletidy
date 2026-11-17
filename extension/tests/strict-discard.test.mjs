@@ -7,8 +7,8 @@ import * as H from "../src/lib/hybrid.js";
 import { route } from "../src/lib/tidy.js";
 import { ORDERS, STUB_ECHO, fakeSdk, unguarded, goodAnswer, noLeakText } from "./helpers.mjs";
 
-const DISCARDED_NOTICE = "The answer did not come from the built-in model on this device, so it was thrown away and the columns below come from the rules on this device only.";
-const DISCARDED_REASON = "The answer did not come from this device and was thrown away. Strict privacy: kept device rules";
+const DISCARDED_NOTICE = "The answer could not be confirmed as coming from the built-in model on this device, so it was thrown away and the columns below come from the rules on this device only.";
+const DISCARDED_REASON = "The answer could not be confirmed as coming from this device and was thrown away. Strict privacy: kept device rules";
 const FAILED_NOTICE = "The built-in model did not give a usable answer, so the columns below come from the rules on this device only. Nothing was sent to the cloud.";
 
 const strictRun = (runPrompt) => H.runHybrid(route(10, 3, "device"), "p", { runPrompt, colCount: 3, status: "available" });

@@ -50,12 +50,12 @@ export const MESSAGES = {
   network: "This browser could not reach the cloud model, so the columns below come from the rules on this device only.",
   cloudOther: "The cloud model did not answer, so the columns below come from the rules on this device only.",
   badAnswer: "The model gave an answer that failed the checks, so the columns below come from the rules on this device only.",
-  strictNoModel: "This browser has no built-in model, so On device only did not run and nothing was sent.",
+  strictNoModel: "This browser has no built-in model that is ready, so On device only did not run and nothing was sent.",
   strictNotReady: "The built-in model is not ready in this browser yet, so On device only did not run and nothing was sent.",
   strictChoices: "Switch to Auto, or open this page in a browser that has Chrome's built-in model (Gemini Nano) ready.",
   strictChoicesNotReady: "Switch to Auto, or try again when the status line above shows Gemini Nano: ready.",
   strictFailed: "The built-in model did not give a usable answer, so the columns below come from the rules on this device only. Nothing was sent to the cloud.",
-  strictDiscarded: "The answer did not come from the built-in model on this device, so it was thrown away and the columns below come from the rules on this device only.",
+  strictDiscarded: "The answer could not be confirmed as coming from the built-in model on this device, so it was thrown away and the columns below come from the rules on this device only.",
   strictSwitched: "You switched to On device only during the run, so no cloud answer was used and nothing more was sent.",
 };
 
@@ -173,13 +173,13 @@ export async function runHybrid(plan, promptText, { runPrompt, colCount, status,
   if (strictPlan) {
     if (status !== "available") {
       const notReady = status === "downloadable" || status === "downloading";
-      return local(`${notReady ? "Gemini Nano is not ready in this browser" : "No built-in model in this browser"}. Strict privacy: nothing was sent, kept device rules`, "no usable on-device model", notReady ? MESSAGES.strictNotReady : MESSAGES.strictNoModel, "auto", notReady ? MESSAGES.strictChoicesNotReady : MESSAGES.strictChoices);
+      return local(`${notReady ? "Gemini Nano is not ready in this browser" : "No usable built-in model in this browser"}. Strict privacy: nothing was sent, kept device rules`, "no usable on-device model", notReady ? MESSAGES.strictNotReady : MESSAGES.strictNoModel, "auto", notReady ? MESSAGES.strictChoicesNotReady : MESSAGES.strictChoices);
     }
     const a = await call("ONLY_ON_DEVICE");
     if (a.ok) return done(a, plan.reason);
     if (a.kind === "no-device") return local("No usable built-in model in this browser. Strict privacy: nothing was sent, kept device rules", a.error, MESSAGES.strictNoModel, "auto", MESSAGES.strictChoices);
-    // A thrown-away answer came from somewhere else, so this ending makes no claim about what was sent.
-    if (a.discarded) return local("The answer did not come from this device and was thrown away. Strict privacy: kept device rules", a.error, MESSAGES.strictDiscarded, "auto");
+    // A thrown-away answer may have come from somewhere else, so this ending makes no claim about what was sent.
+    if (a.discarded) return local("The answer could not be confirmed as coming from this device and was thrown away. Strict privacy: kept device rules", a.error, MESSAGES.strictDiscarded, "auto");
     const why = a.threw ? "On-device run failed" : `On-device answer failed validation (${a.error})`;
     return local(`${why}. Strict privacy: nothing was sent to the cloud, kept device rules`, a.error, MESSAGES.strictFailed, "auto");
   }

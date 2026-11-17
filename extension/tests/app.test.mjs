@@ -43,7 +43,7 @@ test("page: On device only with no model object says so in a plain sentence, off
   assert.equal(sdk.cloudCalls.length, 0, "calls to the cloud model");
   assert.equal(fetched.length, 0, `fetch was called: ${fetched[0]?.replace(/\?.*/, "")}`);
   assert.equal(m.$("badge").textContent, "Device rules", "the badge names no model answer");
-  assert.equal(m.$("run-notice").textContent, "This browser has no built-in model, so On device only did not run and nothing was sent.");
+  assert.equal(m.$("run-notice").textContent, "This browser has no built-in model that is ready, so On device only did not run and nothing was sent.");
   assert.equal(m.$("run-choices").textContent, "Switch to Auto, or open this page in a browser that has Chrome's built-in model (Gemini Nano) ready.");
   assert.equal(m.$("run-error").hidden, false);
   assert.equal(m.$("run-auto").hidden, false);
@@ -104,3 +104,22 @@ test("page: a 4xx shows its own sentence and no Try again; switching to On devic
 });
 
 test.after(() => { globalThis.fetch = realFetch; });
+
+test("page: On device only with a thrown-away answer that was not from this device does not say that no table data left", async () => {
+  // An invented SDK that passes the guard and still answers from the cloud. The SDK in the build cannot do this.
+  const answer = JSON.stringify({ title: "Tidy", columns: Array.from({ length: 6 }, (_, i) => ({ index: i, name: `Col ${i}`, type: "text", personalData: false })) });
+  for (const told of ["in_cloud", "somewhere_new"]) {
+    const sdk = { hasDeviceApi: () => true, deviceStatus: async () => "available", getModel: async () => ({ chromeAdapter: {}, generateContent: async () => ({ response: { text: () => answer, inferenceSource: told } }) }) };
+    const m = mount(sdk);
+    m.app.setTable(ORDERS());
+    m.pick("device");
+    await m.click("tidy");
+    assert.equal(m.$("badge").textContent, "Device rules", told);
+    assert.equal(m.$("run-notice").textContent, H.MESSAGES.strictDiscarded);
+    assert.equal(m.$("sent-note").textContent, "On device only: raw values were used, and this page cannot confirm that this text stayed on this device.");
+    assert.ok(!/othing was sent|no table data left/.test(m.seen()), m.seen());
+    assert.equal(m.$("run-auto").hidden, false);
+    assert.ok(noLeakText(m.seen()), m.seen());
+    m.app.destroy();
+  }
+});
