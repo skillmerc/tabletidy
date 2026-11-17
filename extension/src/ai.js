@@ -99,13 +99,25 @@ export async function modelFor(modeKey) {
   return model;
 }
 
-/** Gemini Nano in this browser right now: "available" | "downloadable" | "downloading" | "unavailable". */
-export async function deviceStatus() {
+/** How long deviceStatus() waits for LanguageModel.availability() before it gives up, in ms. */
+export const STATUS_TIMEOUT_MS = 5000;
+
+/**
+ * Gemini Nano in this browser right now: "available" | "downloadable" | "downloading" | "unavailable".
+ * A status check that does not answer within timeoutMs counts as "unavailable", so a run can
+ * never hang on it. Nothing is sent anywhere in that case. The timer is cleared as soon as the
+ * check answers or throws, and an answer that comes after the timeout changes nothing.
+ * Callers pass no argument; tests pass { timeoutMs }.
+ */
+export async function deviceStatus(opts) {
+  const ms = Number.isFinite(opts?.timeoutMs) && opts.timeoutMs >= 0 ? opts.timeoutMs : STATUS_TIMEOUT_MS;
+  let timer;
   try {
     if (!hasDeviceApi()) return "unavailable";
-    const s = await self.LanguageModel.availability(DEVICE_OPTIONS);
+    const gaveUp = new Promise((resolve) => { timer = setTimeout(() => resolve("unavailable"), ms); });
+    const s = await Promise.race([self.LanguageModel.availability(DEVICE_OPTIONS), gaveUp]);
     return ["available", "downloadable", "downloading"].includes(s) ? s : "unavailable";
-  } catch { return "unavailable"; }
+  } catch { return "unavailable"; } finally { clearTimeout(timer); }
 }
 
 /**
