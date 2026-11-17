@@ -3,9 +3,9 @@
 // rows }) through setTable(); status, tidy, result, "What the model saw" and export are here.
 import { TYPES } from "./lib/infer.js";
 import { localAnalysis, exportTable } from "./lib/tidy.js";
-import { tidyTable } from "./lib/hybrid.js";
+import { tidyTable, MESSAGES } from "./lib/hybrid.js";
 import { toCSV, toJSON, toTSV } from "./lib/export.js";
-import { runPrompt, deviceStatus, downloadDeviceModel } from "./ai.js";
+import * as realAI from "./ai.js";
 
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const secs = (ms) => `${(ms / 1000).toFixed(1)} s`;
@@ -27,7 +27,7 @@ const TEMPLATE = `
     <label><input type="radio" name="pref" value="device" /><span>On device only</span></label>
     <label><input type="radio" name="pref" value="cloud" /><span>Cloud</span></label>
   </div>
-  <p class="rule"><b>Privacy rule:</b> personal-data columns are found and masked on this device before any request that can reach the cloud. <i>On device only</i> never sends table data anywhere.</p>
+  <p class="rule"><b>Privacy rule:</b> personal-data columns are found and masked on this device before any request that can reach the cloud. <i>On device only</i> never sends table data anywhere: if this browser has no built-in model that is ready, it says so and stops.</p>
   <button id="tidy" class="btn primary">Tidy columns</button>
   <p id="tidy-msg" class="muted small" role="status"></p>
 </section>
@@ -37,7 +37,7 @@ const TEMPLATE = `
     <span id="runinfo" class="small"></span>
   </div>
   <p id="attempts" class="muted small attempts" hidden></p>
-  <p id="run-error" class="error small" role="alert" hidden></p>
+  <p id="run-error" class="error small" role="alert" hidden><span id="run-notice"></span> <span id="run-choices"></span> <button id="run-retry" class="btn small" hidden>Try again</button> <button id="run-auto" class="btn small" hidden>Switch to Auto</button></p>
   <h3 id="title" class="title"></h3>
   <ol id="cols" class="cols"></ol>
   <details class="sent" id="sent-wrap"><summary>What the model saw</summary><p id="sent-note" class="muted small"></p><pre id="sent"></pre></details>
@@ -56,8 +56,12 @@ const TEMPLATE = `
   <p id="export-msg" class="muted small" role="status"></p>
 </section>`;
 
-/** Mount the app into `root`. Returns { setTable(table), state }. */
-export function createApp(root, { emptyText = "Pick a table to start." } = {}) {
+/**
+ * Mount the app into `root`. Returns { setTable(table), state }.
+ * `ai` ({ runPrompt, deviceStatus, downloadDeviceModel }) and `sleep` are only passed by tests.
+ */
+export function createApp(root, { emptyText = "Pick a table to start.", ai = realAI, sleep } = {}) {
+  const { runPrompt, deviceStatus, downloadDeviceModel } = ai;
   root.classList.add("tt");
   root.innerHTML = TEMPLATE;
   const $ = (id) => root.querySelector("#" + id);
@@ -75,7 +79,7 @@ export function createApp(root, { emptyText = "Pick a table to start." } = {}) {
     dl.hidden = s !== "downloadable";
     prog.hidden = s !== "downloading";
     if (progress != null) prog.value = progress; else prog.removeAttribute("value");
-    note.textContent = s === "unavailable" ? "Runs use the cloud model." : s === "downloadable" ? "About 3 GB, one time. Until then runs use the cloud model." : s === "downloading" ? "You can keep using the page; runs use the cloud until it is ready." : "";
+    note.textContent = s === "unavailable" ? "Auto runs use the cloud model. On device only cannot run here." : s === "downloadable" ? "About 3 GB, one time. Until then Auto runs use the cloud model." : s === "downloading" ? "You can keep using the page; Auto runs use the cloud until it is ready." : "";
   }
   async function refreshStatus() {
     if (downloading) return;
@@ -89,7 +93,7 @@ export function createApp(root, { emptyText = "Pick a table to start." } = {}) {
     try {
       await downloadDeviceModel((p) => paintStatus("downloading", p));
     } catch (e) {
-      $("nano-note").textContent = `Download did not start: ${e.message || e}`;
+      $("nano-note").textContent = "The download did not start in this browser.";
     } finally {
       downloading = false;
       const s = await deviceStatus();
@@ -108,10 +112,13 @@ export function createApp(root, { emptyText = "Pick a table to start." } = {}) {
     render({ source: "local", ms: 0, reason: "Device rules only, no model run yet", sent: "", attempts: [], masked: [], mask: true, reachedCloud: false, error: null });
   }
 
-  $("tidy").addEventListener("click", async () => {
+  // The setting as it is RIGHT NOW. The run reads it before and after every model call.
+  const prefNow = () => root.querySelector("input[name=pref]:checked")?.value || "device";
+  const isStrict = () => prefNow() === "device";
+  async function runTidy() {
     const t = state.table;
     if (!t || state.busy) return;
-    const pref = root.querySelector("input[name=pref]:checked").value;
+    const pref = prefNow();
     state.busy = true;
     $("tidy").disabled = true;
     $("tidy").textContent = "Working…";
@@ -120,7 +127,10 @@ export function createApp(root, { emptyText = "Pick a table to start." } = {}) {
       const out = await tidyTable(t, pref, {
         runPrompt,
         deviceStatus,
-        onStart: ({ plan, masked }) => { $("tidy-msg").textContent = plan.mask ? `Masked ${masked.length} personal-data column${masked.length === 1 ? "" : "s"} on this device. Asking the model…` : "Asking Gemini Nano on this device…"; },
+        isStrict,
+        sleep,
+        onStart: ({ plan, masked }) => { $("tidy-msg").textContent = plan.mask ? `Masked ${masked.length} personal-data column${masked.length === 1 ? "" : "s"} on this device. Asking the model…` : "On device only: checking the built-in model…"; },
+        onRetry: ({ text }) => { $("tidy-msg").textContent = text; },
       });
       if (state.table !== t) return; // the user picked another table meanwhile
       state.columns = out.columns;
@@ -128,7 +138,8 @@ export function createApp(root, { emptyText = "Pick a table to start." } = {}) {
       render(out.run);
       $("tidy-msg").textContent = "";
     } catch (e) {
-      render({ source: "local", ms: 0, reason: "Something went wrong, kept device rules", sent: "", attempts: [], masked: [], mask: true, reachedCloud: false, error: e.message || String(e) });
+      // Never the raw error: the SDK puts the request address into its messages.
+      render({ source: "local", ms: 0, reason: "Something went wrong, kept device rules", sent: "", attempts: [], masked: [], mask: true, reachedCloud: false, error: "unexpected error", notice: MESSAGES.cloudOther, action: "retry" });
       $("tidy-msg").textContent = "";
     } finally {
       state.busy = false;
@@ -136,6 +147,13 @@ export function createApp(root, { emptyText = "Pick a table to start." } = {}) {
       $("tidy").textContent = "Tidy columns";
       $("step-result").removeAttribute("aria-busy");
     }
+  }
+  $("tidy").addEventListener("click", runTidy);
+  $("run-retry").addEventListener("click", runTidy);
+  $("run-auto").addEventListener("click", () => {
+    root.querySelector("input[name=pref][value=auto]").checked = true;
+    $("run-error").hidden = true;
+    $("tidy-msg").textContent = "Auto is selected. Press Tidy columns to run it.";
   });
 
   // ---- Result view --------------------------------------------------------------------------
@@ -151,10 +169,14 @@ export function createApp(root, { emptyText = "Pick a table to start." } = {}) {
     at.hidden = run.attempts.length < 2;
     at.textContent = run.attempts.map((a, i) => `Attempt ${i + 1}: ${(SOURCE_LABEL[a.source] || a.source).toLowerCase()}${a.ms ? `, ${secs(a.ms)}` : ""}, ${a.ok ? "accepted" : `rejected (${a.error})`}`).join(" · ");
     const err = $("run-error");
-    err.hidden = !(run.source === "local" && run.error);
-    err.textContent = run.error ? `No model answer was used: ${run.error}` : "";
+    const notice = run.source === "local" && (run.notice || (run.error ? MESSAGES.cloudOther : ""));
+    err.hidden = !notice;
+    $("run-notice").textContent = notice || "";
+    $("run-choices").textContent = (notice && run.choices) || "";
+    $("run-retry").hidden = !(notice && run.action === "retry");
+    $("run-auto").hidden = !(notice && run.action === "auto");
     $("title").textContent = state.title;
-    $("sent").textContent = run.sent || "Nothing has been sent to a model yet. Press Tidy columns.";
+    $("sent").textContent = run.sent || (run.strict ? "Nothing was sent to any model on this run." : "Nothing has been sent to a model yet. Press Tidy columns.");
     $("sent-note").textContent = !run.sent ? "" : !run.mask
       ? "On device only: raw values were used and nothing left this browser."
       : (run.masked.length ? `Masked on this device before the request was built: ${run.masked.join(", ")}. ` : "No personal-data columns found, nothing to mask. ") + (run.reachedCloud ? "This exact text went to Gemini in the cloud." : "This run stayed on this device.");

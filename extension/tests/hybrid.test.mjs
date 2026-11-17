@@ -64,7 +64,7 @@ test("prefer on device: an on-device crash also falls back; SDK-side fallback is
   const f = fake({ PREFER_ON_DEVICE: new Error("session failed"), ONLY_IN_CLOUD: { text: good(), source: "in_cloud", ms: 1500 } });
   const r = await runHybrid(route(10, 3), "p", { runPrompt: f.runPrompt, colCount: 3 });
   assert.equal(r.source, "in_cloud");
-  assert.match(r.reason, /On-device run failed \(session failed\), cloud fallback/);
+  assert.equal(r.reason, "On-device run failed, cloud fallback"); // the raw error text is no longer shown
   const g = fake({ PREFER_ON_DEVICE: { text: good(), source: "in_cloud", ms: 1500 } });
   const r2 = await runHybrid(route(10, 3), "p", { runPrompt: g.runPrompt, colCount: 3, status: "downloadable" });
   assert.deepEqual(g.calls, ["PREFER_ON_DEVICE"]);
@@ -73,18 +73,20 @@ test("prefer on device: an on-device crash also falls back; SDK-side fallback is
 
 test("on device only (strict privacy) never calls the cloud, even on a bad answer", async () => {
   const f = fake({ ONLY_ON_DEVICE: { text: STUB_ECHO, source: "on_device", ms: 700 }, ONLY_IN_CLOUD: { text: good(), source: "in_cloud", ms: 1 } });
-  const r = await runHybrid(route(10, 3, "device"), "p", { runPrompt: f.runPrompt, colCount: 3 });
+  const r = await runHybrid(route(10, 3, "device"), "p", { runPrompt: f.runPrompt, colCount: 3, status: "available" });
   assert.deepEqual(f.calls, ["ONLY_ON_DEVICE"]);
   assert.equal(r.source, "local");
   assert.equal(r.answer, null);
   assert.match(r.reason, /nothing was sent to the cloud/);
 });
 
-test("cloud failures keep the device rules and carry the error", async () => {
+test("cloud failures keep the device rules and carry a plain reason, never the raw error", async () => {
   const f = fake({ ONLY_IN_CLOUD: new Error("AppCheck: token rejected") });
   const r = await runHybrid(route(10, 3, "cloud"), "p", { runPrompt: f.runPrompt, colCount: 3 });
   assert.equal(r.source, "local");
-  assert.match(r.error, /token rejected/);
+  assert.equal(r.error, "model call failed");
+  assert.ok(!JSON.stringify(r).includes("token rejected"));
+  assert.equal(f.calls.length, 1, "an error that is not a 5xx is not retried");
   const g = fake({ PREFER_ON_DEVICE: { text: "", source: "on_device", ms: 5 }, ONLY_IN_CLOUD: { text: "oops", source: "in_cloud", ms: 5 } });
   const r2 = await runHybrid(route(10, 3), "p", { runPrompt: g.runPrompt, colCount: 3 });
   assert.equal(r2.source, "local");

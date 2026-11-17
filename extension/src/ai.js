@@ -11,6 +11,7 @@ import { initializeAppCheck, CustomProvider, ReCaptchaEnterpriseProvider } from 
 import { getAI, getGenerativeModel, GoogleAIBackend, InferenceMode, Schema } from "firebase/ai";
 import { TYPES } from "./lib/infer.js";
 import { RESPONSE_JSON_SCHEMA } from "./lib/tidy.js";
+import { makeRunPrompt } from "./lib/hybrid.js";
 
 export const CLOUD_MODEL = "gemini-3.5-flash-lite";
 
@@ -68,9 +69,19 @@ export function initAI() {
   return aiPromise;
 }
 
-/** Hybrid model for one InferenceMode key ("PREFER_ON_DEVICE", ...). Cached per mode. */
+/** Is the Chrome built-in model object (LanguageModel) on the global at all? The SDK uses no other. */
+export function hasDeviceApi() {
+  try { return typeof self !== "undefined" && "LanguageModel" in self && Boolean(self.LanguageModel); } catch { return false; }
+}
+
+/**
+ * Hybrid model for one InferenceMode key ("PREFER_ON_DEVICE", ...). The SDK decides when the
+ * model is created whether it gets an on-device adapter, so the cache is kept per mode AND
+ * per "is the LanguageModel object there".
+ */
 export async function modelFor(modeKey) {
-  if (models.has(modeKey)) return models.get(modeKey);
+  const key = `${modeKey}:${hasDeviceApi() ? "api" : "no-api"}`;
+  if (models.has(key)) return models.get(key);
   const model = getGenerativeModel(await initAI(), {
     mode: InferenceMode[modeKey],
     // On device: Chrome Prompt API (Gemini Nano) with a JSON Schema response constraint.
@@ -84,15 +95,16 @@ export async function modelFor(modeKey) {
       generationConfig: { responseMimeType: "application/json", responseSchema, temperature: 0.2 },
     },
   });
-  models.set(modeKey, model);
+  models.set(key, model);
   return model;
 }
 
 /** Gemini Nano in this browser right now: "available" | "downloadable" | "downloading" | "unavailable". */
 export async function deviceStatus() {
   try {
-    if (!("LanguageModel" in self)) return "unavailable";
-    return await self.LanguageModel.availability(DEVICE_OPTIONS);
+    if (!hasDeviceApi()) return "unavailable";
+    const s = await self.LanguageModel.availability(DEVICE_OPTIONS);
+    return ["available", "downloadable", "downloading"].includes(s) ? s : "unavailable";
   } catch { return "unavailable"; }
 }
 
@@ -107,18 +119,10 @@ export async function downloadDeviceModel(onProgress) {
 }
 
 /**
- * Run one prompt through Firebase AI Logic. Returns { text, source: "on_device" | "in_cloud", ms }.
+ * Run one prompt through Firebase AI Logic. Returns { text, source: "on_device" | "in_cloud" | "unknown", ms }.
  * The answer is NOT trusted here: lib/hybrid.js validates it and decides about fallback.
+ * For ONLY_ON_DEVICE the guard in makeRunPrompt (lib/hybrid.js) refuses to call the SDK unless
+ * the LanguageModel object exists, reports "available" and the model has its on-device adapter:
+ * without that object the SDK would send an ONLY_ON_DEVICE request to the cloud.
  */
-export async function runPrompt(modeKey, prompt) {
-  const model = await modelFor(modeKey);
-  const t0 = performance.now();
-  const result = await model.generateContent(prompt);
-  let text = "";
-  try { text = result.response.text(); } catch { text = ""; }
-  return {
-    text,
-    source: String(result.response.inferenceSource || (modeKey === "ONLY_IN_CLOUD" ? "in_cloud" : "on_device")).toLowerCase(),
-    ms: Math.round(performance.now() - t0),
-  };
-}
+export const runPrompt = makeRunPrompt({ getModel: modelFor, hasDeviceApi, deviceStatus, now: () => performance.now() });

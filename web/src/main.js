@@ -47,6 +47,13 @@ function getModel(mode) {
 
 $("run").addEventListener("click", async () => {
   const mode = InferenceMode[$("mode").value.toUpperCase()] ?? $("mode").value;
+  // Strict privacy: without a ready LanguageModel object the SDK would send an "only on device"
+  // request to the cloud, so nothing is called here unless the built-in model is there and ready.
+  if ($("mode").value === "only_on_device") {
+    let ready = false;
+    try { ready = "LanguageModel" in self && (await self.LanguageModel.availability({ expectedInputs: [{ type: "text", languages: ["en"] }], expectedOutputs: [{ type: "text", languages: ["en"] }] })) === "available"; } catch { ready = false; }
+    if (!ready) { $("source").innerHTML = ""; $("out").textContent = ""; $("status").textContent = "This browser has no built-in model that is ready, so Only on device did not run and nothing was sent."; return; }
+  }
   const m = getModel(mode);
   $("status").textContent = "Preparing model...";
   $("source").innerHTML = "";
