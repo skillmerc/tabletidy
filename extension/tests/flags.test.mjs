@@ -43,7 +43,7 @@ const CASES = [
   { name: "Auto, on-device answer is garbage, cloud fallback", pref: "auto", sdk: { api: "available", device: "garbage" }, cloud: 1, device: 1 },
   { name: "Cloud, busy twice then an answer (retries)", pref: "cloud", sdk: { api: "none", cloud: [500, 503, "ok"] }, cloud: 3, device: 0 },
   { name: "Auto, busy twice then an answer (retries)", pref: "auto", sdk: { api: "none", cloud: [500, 503, "ok"] }, cloud: 3, device: 0 },
-  { name: "Auto, on-device call throws, cloud busy on all three tries (device rules kept)", pref: "auto", sdk: { api: "available", device: "throw", cloud: [500] }, cloud: 3, device: 1, local: true },
+  { name: "Auto, on-device call throws, cloud busy on the two tries that are left (device rules kept)", pref: "auto", sdk: { api: "available", device: "throw", cloud: [500] }, cloud: 2, device: 1, local: true },
 ];
 
 for (const c of CASES) {

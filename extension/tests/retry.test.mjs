@@ -118,3 +118,49 @@ test("REPRODUCTION of 17 Nov: the cloud answers HTTP 500 'high demand' once on C
     assert.equal(out.run.source, "in_cloud");
   }
 });
+
+// Reviewer follow-up T2 (17 Nov 2026): the hard cap. With no model object the SDK sends the
+// PREFER_ON_DEVICE call to the cloud. If that send fails with an error classifyError cannot place
+// (no status, no "Error fetching"), the run used to fall back and then try the cloud three more times.
+test("small table, Auto, first cloud send fails with an unclassified error, then always 500: exactly 3 cloud sends", async () => {
+  assert.equal(H.classifyError(new Error("stream closed")).kind, "other", "the first failure is one classifyError cannot place");
+  const sdk = fakeSdk({ api: "none", cloud: [() => { throw new Error("stream closed"); }, 500] });
+  const { out, waits, lines } = await run(ORDERS(), "auto", sdk);
+  assert.equal(out.run.attempts[0].mode, "PREFER_ON_DEVICE", "a small table in Auto starts with PREFER_ON_DEVICE");
+  assert.equal(out.run.attempts[0].kind, "other");
+  assert.equal(sdk.cloudCalls.length, 3, `${sdk.cloudCalls.length} cloud sends in one run, the cap is ${H.MAX_CLOUD_TRIES}`);
+  assert.equal(sdk.deviceCalls.length, 0);
+  assert.equal(sdk.maxInFlight, 1, "one at a time");
+  assert.equal(new Set(sdk.cloudCalls).size, 1, "every send is the same masked prompt");
+  assert.deepEqual(waits, [1000]);
+  assert.deepEqual(lines, ["The cloud model is busy. Trying again (3 of 3)."]);
+  assert.equal(out.run.notice, "The cloud model was still busy on the last of this run's three tries, so the columns below come from the rules on this device only.");
+  assert.match(out.run.reason, /the cloud model was still busy on try 3 of 3, kept device rules$/);
+  assert.equal(out.run.source, "local");
+  assert.equal(out.run.action, "retry");
+  assert.ok(noLeakText(shown(out.run)), shown(out.run));
+});
+
+// The same cap when a ready built-in model's call throws: that call cannot be shown to have stayed
+// on the device, so it counts as one of the three and the cloud gets two tries.
+test("small table, Auto, ready model whose call throws: the cloud gets 2 tries, and the lines count the failed first call", async () => {
+  const busy = fakeSdk({ api: "available", device: "throw", cloud: [500] });
+  const a = await run(ORDERS(), "auto", busy);
+  assert.equal(busy.deviceCalls.length, 1);
+  assert.equal(busy.cloudCalls.length, 2);
+  assert.equal(busy.maxInFlight, 1);
+  assert.deepEqual(a.waits, [1000]);
+  assert.deepEqual(a.lines, ["The cloud model is busy. Trying again (3 of 3)."]);
+  assert.equal(a.out.run.notice, "The cloud model was still busy on the last of this run's three tries, so the columns below come from the rules on this device only.");
+  assert.equal(a.out.run.reason, "On-device run failed and the cloud model was still busy on try 3 of 3, kept device rules");
+  assert.equal(a.out.run.source, "local");
+  const answered = fakeSdk({ api: "available", device: "throw", cloud: [500, "ok"] });
+  const b = await run(ORDERS(), "auto", answered);
+  assert.equal(answered.cloudCalls.length, 2);
+  assert.equal(b.out.run.source, "in_cloud");
+  assert.equal(b.out.run.reason, "On-device run failed, cloud fallback (the cloud model was busy, answered on try 3 of 3)");
+  const first = fakeSdk({ api: "available", device: "throw", cloud: ["ok"] });
+  const c = await run(ORDERS(), "auto", first);
+  assert.equal(first.cloudCalls.length, 1);
+  assert.equal(c.out.run.reason, "On-device run failed, cloud fallback");
+});

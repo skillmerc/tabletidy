@@ -43,6 +43,7 @@ export const RETRY_WAITS_MS = [1000, 3000];
 export const MESSAGES = {
   busyWait: (n, of) => `The cloud model is busy. Trying again (${n} of ${of}).`,
   busyFinal: "The cloud model was busy on all three tries, so the columns below come from the rules on this device only.",
+  busyCapped: "The cloud model was still busy on the last of this run's three tries, so the columns below come from the rules on this device only.",
   refusedCheck: "The cloud model turned this request down at its security check, so the columns below come from the rules on this device only.",
   refusedQuota: "This page has used up its cloud model allowance for now, so the columns below come from the rules on this device only.",
   refusedBad: "The cloud model could not accept this request, so the columns below come from the rules on this device only.",
@@ -133,6 +134,8 @@ export function makeRunPrompt({ getModel, hasDeviceApi, deviceStatus, now = () =
  * - A cloud call that fails with a 5xx or a "high demand" answer is tried again after 1 s and
  *   after 3 s: three tries in all. A call is only repeated after it has failed, so one run
  *   never has two cloud calls out at once. A 4xx is not retried.
+ * - One run never makes more than three calls that can reach the cloud. A call counts unless it is
+ *   known to have stayed on the device: a first call that threw counts, and the cloud then gets two tries.
  * - If nothing valid comes back the caller keeps the device rules result (source "local").
  * Returns { answer, source, ms, reason, attempts, error, notice, choices, action, retried }.
  * notice is a plain sentence for the page; action is "retry" (Try again), "auto" (Switch to Auto) or null.
@@ -143,8 +146,8 @@ export async function runHybrid(plan, promptText, { runPrompt, colCount, status,
   const strictNow = () => strictPlan || isStrict?.() === true;
   const push = (a) => { attempts.push(a); return a; };
   const listed = () => attempts.map(({ value, ...rest }) => rest);
-  let busy = 0;
-  const done = (a, reason) => ({ answer: a.value, source: a.source, ms: a.ms, reason: busy ? `${reason} (the cloud model was busy, answered on try ${busy + 1} of ${MAX_CLOUD_TRIES})` : reason, attempts: listed(), error: null, notice: null, choices: null, action: null, retried: busy });
+  let busy = 0, sends = 0;
+  const done = (a, reason) => ({ answer: a.value, source: a.source, ms: a.ms, reason: busy ? `${reason} (the cloud model was busy, answered on try ${Math.max(busy + 1, sends)} of ${MAX_CLOUD_TRIES})` : reason, attempts: listed(), error: null, notice: null, choices: null, action: null, retried: busy });
   const local = (reason, error, notice, action = null, choices = null) => ({ answer: null, source: "local", ms: 0, reason, attempts: listed(), error: error || null, notice: notice || null, choices, action, retried: busy });
   const switched = () => local("Switched to On device only during the run, kept device rules", "On device only is set", MESSAGES.strictSwitched);
 
@@ -183,7 +186,9 @@ export async function runHybrid(plan, promptText, { runPrompt, colCount, status,
   let mode = plan.mode, fellBack = null, a;
   for (;;) {
     a = await call(mode);
+    if (a.called && a.source !== "on_device") sends++;
     if (a.ok || a.blocked || a.discarded) break;
+    if (sends >= MAX_CLOUD_TRIES) break; // never more than three sends that can reach the cloud in one run
     // PREFER_IN_CLOUD: the SDK tries the cloud first and, when that fails, the device. A failed
     // answer that is not from the cloud therefore means one cloud try has already failed.
     const deviceAfterCloud = mode === "PREFER_IN_CLOUD" && a.source !== "in_cloud";
@@ -192,7 +197,8 @@ export async function runHybrid(plan, promptText, { runPrompt, colCount, status,
       if (deviceAfterCloud) mode = "ONLY_IN_CLOUD";
       const waitMs = RETRY_WAITS_MS[busy] ?? RETRY_WAITS_MS[RETRY_WAITS_MS.length - 1];
       busy++;
-      onRetry?.({ attempt: busy + 1, of: MAX_CLOUD_TRIES, waitMs, text: MESSAGES.busyWait(busy + 1, MAX_CLOUD_TRIES) });
+      const next = Math.max(busy, sends) + 1; // the failed first call of a capped run counts as a try
+      onRetry?.({ attempt: next, of: MAX_CLOUD_TRIES, waitMs, text: MESSAGES.busyWait(next, MAX_CLOUD_TRIES) });
       await sleep(waitMs);
       continue; // call() checks strict mode again before anything is sent
     }
@@ -212,6 +218,7 @@ export async function runHybrid(plan, promptText, { runPrompt, colCount, status,
     return done(a, plan.reason);
   }
   const lead = fellBack ? `${fellBack} and the cloud ` : "The cloud ";
+  if (a.threw && a.kind === "busy" && busy < MAX_CLOUD_TRIES - 1) return local(`${lead}model was still busy on try ${MAX_CLOUD_TRIES} of ${MAX_CLOUD_TRIES}, kept device rules`, a.error, MESSAGES.busyCapped, "retry");
   if (a.threw && a.kind === "busy") return local(`${lead}model was busy on all ${MAX_CLOUD_TRIES} tries, kept device rules`, a.error, MESSAGES.busyFinal, "retry");
   if (a.threw && a.kind === "refused") return local(`${lead}model refused the request, kept device rules`, a.error, refusedMessage(a.status));
   if (a.threw && a.kind === "network") return local(`${lead}model could not be reached, kept device rules`, a.error, MESSAGES.network, "retry");
