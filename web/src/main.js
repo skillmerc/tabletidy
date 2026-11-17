@@ -72,7 +72,7 @@ $("run").addEventListener("click", async () => {
     $("out").textContent = result.response.text();
     console.log("[tabletidy] inferenceSource:", src);
   } catch (e) {
-    $("status").textContent = "Error: " + e.message;
+    $("status").textContent = "The call failed. The details are in the browser console.";
     console.error(e);
   }
 });

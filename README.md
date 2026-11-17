@@ -93,7 +93,7 @@ The extension ID is fixed by the `key` in [`extension/public/manifest.json`](ext
 
 `npm run build:site` writes `site/` (the Firebase Hosting public directory, see `firebase.json`): [`tools/build-demo.mjs`](tools/build-demo.mjs) generates `site/index.html`, and [`tools/build-site.mjs`](tools/build-site.mjs) copies the shared modules from `extension/src` into `site/app`, vendors the Firebase ESM files and writes `site/app/config.js` from `web/.env.local` (Firebase web config and `VITE_RECAPTCHA_ENTERPRISE_SITE_KEY`). The build fails if an App Check debug token would end up in the public site. Register your hosting domains on the reCAPTCHA Enterprise key, then `firebase deploy --only hosting`. `site/app` is generated and not committed.
 
-[`extension/tests/demo.test.mjs`](extension/tests/demo.test.mjs) runs the detection engine, the personal-data rules and the routing rule against the hosted page, so the samples cannot drift from the code. A small smoke test of the bare hybrid call lives in [`web/`](web/) (`npm run dev`, http://localhost:5173).
+[`extension/tests/demo.test.mjs`](extension/tests/demo.test.mjs) runs the detection engine, the personal-data rules and the routing rule against the hosted page, so the samples cannot drift from the code. A small smoke test of the bare hybrid call lives in [`web/`](web/) (`npm run dev`, http://localhost:5173). It is a bare SDK test page for developers and is not part of the hosted app. In its three modes other than "Only on device" it sends the pasted text to the model, on the device or in the cloud, as it is, with no masking.
 
 ## Built during the contest vs reused
 
