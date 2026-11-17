@@ -77,7 +77,12 @@ export function hasDeviceApi() {
 /**
  * Hybrid model for one InferenceMode key ("PREFER_ON_DEVICE", ...). The SDK decides when the
  * model is created whether it gets an on-device adapter, so the cache is kept per mode AND
- * per "is the LanguageModel object there".
+ * per "does the model have its on-device adapter".
+ * What the cache key means: "<mode>:api" holds only a model that has its adapter (chromeAdapter),
+ * "<mode>:no-api" holds only a model built without one. The lookup asks "is the LanguageModel
+ * object there now", but a model is filed under what it really got. So if the object vanishes
+ * between the lookup and the build, the adapterless model is not kept under "api", and the
+ * next call with the object present builds a new model.
  */
 export async function modelFor(modeKey) {
   const key = `${modeKey}:${hasDeviceApi() ? "api" : "no-api"}`;
@@ -95,7 +100,7 @@ export async function modelFor(modeKey) {
       generationConfig: { responseMimeType: "application/json", responseSchema, temperature: 0.2 },
     },
   });
-  models.set(key, model);
+  models.set(`${modeKey}:${model?.chromeAdapter ? "api" : "no-api"}`, model);
   return model;
 }
 
