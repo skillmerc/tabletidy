@@ -48,14 +48,14 @@ All runtime calls are in [`extension/src/ai.js`](extension/src/ai.js), the modul
 
 | What | Where |
 |---|---|
-| App Check, reCAPTCHA Enterprise on the hosted site | `initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(...) })` [ai.js line 57](extension/src/ai.js#L57) |
-| App Check, debug token in the extension | [ai.js lines 59-64](extension/src/ai.js#L59) |
-| AI Logic backend (Gemini Developer API) | `getAI(app, { backend: new GoogleAIBackend() })` [ai.js line 66](extension/src/ai.js#L66) |
-| Hybrid model per routing decision | `getGenerativeModel(ai, { mode: InferenceMode[...], onDeviceParams, inCloudParams })` [ai.js lines 74-86](extension/src/ai.js#L74) |
-| Same schema on both runtimes | `responseConstraint` on device [line 79](extension/src/ai.js#L79), `responseSchema` in the cloud [line 84](extension/src/ai.js#L84) |
-| Gemini Nano download on a user click | `model.initializeDeviceModel(onProgress)` [line 105](extension/src/ai.js#L105) |
-| The call | `model.generateContent(prompt)` [line 116](extension/src/ai.js#L116) |
-| On device / Cloud badge | `result.response.inferenceSource` [line 121](extension/src/ai.js#L121) |
+| App Check, reCAPTCHA Enterprise on the hosted site | `initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(...) })` [ai.js line 58](extension/src/ai.js#L58) |
+| App Check, debug token in the extension | [ai.js lines 59-66](extension/src/ai.js#L59) |
+| AI Logic backend (Gemini Developer API) | `getAI(app, { backend: new GoogleAIBackend() })` [ai.js line 67](extension/src/ai.js#L67) |
+| Hybrid model per routing decision | `getGenerativeModel(ai, { mode: InferenceMode[...], onDeviceParams, inCloudParams })` [ai.js lines 90-102](extension/src/ai.js#L90) |
+| Same schema on both runtimes | `responseConstraint` on device [line 95](extension/src/ai.js#L95), `responseSchema` in the cloud [line 100](extension/src/ai.js#L100) |
+| Gemini Nano download on a user click | `model.initializeDeviceModel(onProgress)` [line 134](extension/src/ai.js#L134) |
+| The call | `model.generateContent(prompt)` [hybrid.js line 109](extension/src/lib/hybrid.js#L109) |
+| On device / Cloud badge | `result.response.inferenceSource` [hybrid.js line 112](extension/src/lib/hybrid.js#L112) |
 
 Routing, privacy and fallback are plain, unit-tested functions:
 
@@ -74,7 +74,7 @@ Tested on the hosted URL in a Chromium 154 browser whose built-in model returns 
 - Cloud runs through Firebase AI Logic with App Check (reCAPTCHA Enterprise) on both `tabletidy-82369.web.app` and `tabletidy-82369.firebaseapp.com`. A request without an App Check token is rejected with 401.
 - A prefer-on-device run whose on-device answer was not JSON fell back to the cloud and showed "On-device answer failed validation (not JSON), cloud fallback".
 - Masking in "What the model saw", editing, CSV and JSON export, pasted tables, phone width, zero console errors.
-- `npm test`: 211 unit tests (validator, fallback rules, strict mode in every on-device model state, cloud retry, masking of every cloud call, masking of columns flagged by hand or by the model on an earlier run, parsing, routing, type inference, the reused detection engine, the hosted page's samples, and the page view in a test DOM).
+- `npm test`: 212 unit tests (validator, fallback rules, strict mode in every on-device model state, cloud retry, masking of every cloud call, masking of columns flagged by hand or by the model on an earlier run, parsing, routing, type inference, the reused detection engine, the hosted page's samples, and the page view in a test DOM).
 
 Not yet verified by us: a correct Gemini Nano answer in Google Chrome itself (so this README makes no claim about on-device speed), and the extension running as an installed unpacked extension. The automated build environment cannot start Google Chrome. The code path is the same one the tests and the hosted fallback exercise.
 
