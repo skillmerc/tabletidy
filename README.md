@@ -62,7 +62,7 @@ Routing, privacy and fallback are plain, unit-tested functions:
 - `route()` ([tidy.js line 15](extension/src/lib/tidy.js#L15)): **Auto** uses `PREFER_ON_DEVICE` for tables up to 1,500 cells and `PREFER_IN_CLOUD` above that. **On device only** uses `ONLY_ON_DEVICE` (raw values allowed because nothing leaves the browser). **Cloud** uses `ONLY_IN_CLOUD`. Every mode that can reach the cloud has `mask: true`.
 - `buildPrompt()` ([tidy.js line 46](extension/src/lib/tidy.js#L46)) masks the flagged columns *before* the prompt text exists. Masks keep the shape (`+00 00 000 0000`, `name@example.com`, `Person Name`) so the model can still type the column.
 - `validateAnswer()` ([hybrid.js line 14](extension/src/lib/hybrid.js#L14)) checks every answer: non-empty, JSON, a title, and exactly one valid entry (index, name, known type, boolean flag) per column of the table.
-- `runHybrid()` ([hybrid.js line 53](extension/src/lib/hybrid.js#L53)): if a `PREFER_ON_DEVICE` answer is empty, not JSON or fails validation, the same already-masked prompt is sent once with `ONLY_IN_CLOUD` and the badge gives the reason. `ONLY_ON_DEVICE` never falls back to the cloud; it keeps the device rules result and says so.
+- `runHybrid()` ([hybrid.js line 139](extension/src/lib/hybrid.js#L139)): if a `PREFER_ON_DEVICE` answer is empty, not JSON or fails validation, the same already-masked prompt is sent with `ONLY_IN_CLOUD` and the badge gives the reason. A cloud call that fails with a 5xx or a "high demand" answer is tried three times in all (waits of 1 s, then 3 s); a 4xx is not retried. `ONLY_ON_DEVICE` never falls back to the cloud: strict mode is decided first, no model is called unless the browser's `LanguageModel` object exists and reports `available`, and an answer that did not come from the device is thrown away. Without a ready built-in model the page says so and sends nothing.
 - `mergeColumns()` ([tidy.js line 109](extension/src/lib/tidy.js#L109)): the model can rename, retype (only if the values actually parse as that type) and *add* personal-data flags. It can never remove a flag set by the on-device rules.
 
 The flow for one run: table in (sample, paste or page scan) -> on-device rules type every column and flag personal data ([`lib/infer.js`](extension/src/lib/infer.js), [`lib/pii.js`](extension/src/lib/pii.js)) -> route -> mask -> Firebase AI Logic hybrid call -> validate, cloud fallback if needed -> merge -> edit -> export. The view for all of that is [`extension/src/app.js`](extension/src/app.js), mounted by the hosted app and by the experimental side panel source.
@@ -74,7 +74,7 @@ Tested on the hosted URL in a Chromium 154 browser whose built-in model returns 
 - Cloud runs through Firebase AI Logic with App Check (reCAPTCHA Enterprise) on both `tabletidy-82369.web.app` and `tabletidy-82369.firebaseapp.com`. A request without an App Check token is rejected with 401.
 - A prefer-on-device run whose on-device answer was not JSON fell back to the cloud and showed "On-device answer failed validation (not JSON), cloud fallback".
 - Masking in "What the model saw", editing, CSV and JSON export, pasted tables, phone width, zero console errors.
-- `npm test`: 48 unit tests (validator, fallback rules, parsing, routing, masking, type inference, the reused detection engine, and the hosted page's samples).
+- `npm test`: 160 unit tests (validator, fallback rules, strict mode in every on-device model state, cloud retry, masking of every cloud call, parsing, routing, type inference, the reused detection engine, the hosted page's samples, and the page view in a test DOM).
 
 Not yet verified by us: a correct Gemini Nano answer in Google Chrome itself (so this README makes no claim about on-device speed), and the extension running as an installed unpacked extension. The automated build environment cannot start Google Chrome. The code path is the same one the tests and the hosted fallback exercise.
 
@@ -109,7 +109,7 @@ Built during the submission period (from 13 Nov 2026):
 - `lib/infer.js`: deterministic type inference and value normalising (decimal commas, currency, ISO dates).
 - `lib/parse.js`: pasted HTML table, CSV and TSV parsing.
 - `app.js` and `ui.css`: the shared view and look; the hosted playground (`web/src/playground.js`, `site/`, `tools/`); the side panel, content script wrapper and service worker.
-- Unit tests `tests/hybrid`, `tests/parse`, `tests/infer`, `tests/pii`, `tests/tidy`, `tests/demo`.
+- Unit tests `tests/hybrid`, `tests/strict`, `tests/retry`, `tests/sdk`, `tests/app`, `tests/parse`, `tests/infer`, `tests/pii`, `tests/tidy`, `tests/demo`.
 
 ## AI coding agent disclosure
 
