@@ -55,6 +55,7 @@ export const MESSAGES = {
   strictChoices: "Switch to Auto, or open this page in a browser that has Chrome's built-in model (Gemini Nano) ready.",
   strictChoicesNotReady: "Switch to Auto, or try again when the status line above shows Gemini Nano: ready.",
   strictFailed: "The built-in model did not give a usable answer, so the columns below come from the rules on this device only. Nothing was sent to the cloud.",
+  strictDiscarded: "The answer did not come from the built-in model on this device, so it was thrown away and the columns below come from the rules on this device only.",
   strictSwitched: "You switched to On device only during the run, so no cloud answer was used and nothing more was sent.",
 };
 
@@ -177,7 +178,9 @@ export async function runHybrid(plan, promptText, { runPrompt, colCount, status,
     const a = await call("ONLY_ON_DEVICE");
     if (a.ok) return done(a, plan.reason);
     if (a.kind === "no-device") return local("No usable built-in model in this browser. Strict privacy: nothing was sent, kept device rules", a.error, MESSAGES.strictNoModel, "auto", MESSAGES.strictChoices);
-    const why = a.threw ? "On-device run failed" : a.discarded ? "The answer did not come from this device and was thrown away" : `On-device answer failed validation (${a.error})`;
+    // A thrown-away answer came from somewhere else, so this ending makes no claim about what was sent.
+    if (a.discarded) return local("The answer did not come from this device and was thrown away. Strict privacy: kept device rules", a.error, MESSAGES.strictDiscarded, "auto");
+    const why = a.threw ? "On-device run failed" : `On-device answer failed validation (${a.error})`;
     return local(`${why}. Strict privacy: nothing was sent to the cloud, kept device rules`, a.error, MESSAGES.strictFailed, "auto");
   }
   if (strictNow()) { push({ mode: plan.mode, source: "none", ms: 0, ok: false, error: "not sent, On device only is set", threw: false, called: false, blocked: true }); return switched(); }
