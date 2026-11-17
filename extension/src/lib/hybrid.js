@@ -51,7 +51,8 @@ export const MESSAGES = {
   badAnswer: "The model gave an answer that failed the checks, so the columns below come from the rules on this device only.",
   strictNoModel: "This browser has no built-in model, so On device only did not run and nothing was sent.",
   strictNotReady: "The built-in model is not ready in this browser yet, so On device only did not run and nothing was sent.",
-  strictChoices: "Switch to Auto, or open this page in a browser with the built-in model (desktop Google Chrome).",
+  strictChoices: "Switch to Auto, or open this page in a browser that has Chrome's built-in model (Gemini Nano) ready.",
+  strictChoicesNotReady: "Switch to Auto, or try again when the status line above shows Gemini Nano: ready.",
   strictFailed: "The built-in model did not give a usable answer, so the columns below come from the rules on this device only. Nothing was sent to the cloud.",
   strictSwitched: "You switched to On device only during the run, so no cloud answer was used and nothing more was sent.",
 };
@@ -168,7 +169,7 @@ export async function runHybrid(plan, promptText, { runPrompt, colCount, status,
   if (strictPlan) {
     if (status !== "available") {
       const notReady = status === "downloadable" || status === "downloading";
-      return local(`${notReady ? "Gemini Nano is not ready in this browser" : "No built-in model in this browser"}. Strict privacy: nothing was sent, kept device rules`, "no usable on-device model", notReady ? MESSAGES.strictNotReady : MESSAGES.strictNoModel, "auto", MESSAGES.strictChoices);
+      return local(`${notReady ? "Gemini Nano is not ready in this browser" : "No built-in model in this browser"}. Strict privacy: nothing was sent, kept device rules`, "no usable on-device model", notReady ? MESSAGES.strictNotReady : MESSAGES.strictNoModel, "auto", notReady ? MESSAGES.strictChoicesNotReady : MESSAGES.strictChoices);
     }
     const a = await call("ONLY_ON_DEVICE");
     if (a.ok) return done(a, plan.reason);

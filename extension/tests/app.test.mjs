@@ -44,7 +44,7 @@ test("page: On device only with no model object says so in a plain sentence, off
   assert.equal(fetched.length, 0, `fetch was called: ${fetched[0]?.replace(/\?.*/, "")}`);
   assert.equal(m.$("badge").textContent, "Device rules", "the badge names no model answer");
   assert.equal(m.$("run-notice").textContent, "This browser has no built-in model, so On device only did not run and nothing was sent.");
-  assert.equal(m.$("run-choices").textContent, "Switch to Auto, or open this page in a browser with the built-in model (desktop Google Chrome).");
+  assert.equal(m.$("run-choices").textContent, "Switch to Auto, or open this page in a browser that has Chrome's built-in model (Gemini Nano) ready.");
   assert.equal(m.$("run-error").hidden, false);
   assert.equal(m.$("run-auto").hidden, false);
   assert.equal(m.$("run-retry").hidden, true);

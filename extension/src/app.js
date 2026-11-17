@@ -178,7 +178,7 @@ export function createApp(root, { emptyText = "Pick a table to start.", ai = rea
     $("title").textContent = state.title;
     $("sent").textContent = run.sent || (run.strict ? "Nothing was sent to any model on this run." : "Nothing has been sent to a model yet. Press Tidy columns.");
     $("sent-note").textContent = !run.sent ? "" : !run.mask
-      ? "On device only: raw values were used and nothing left this browser."
+      ? "On device only: raw values were used and no table data left this browser."
       : (run.masked.length ? `Masked on this device before the request was built: ${run.masked.join(", ")}. ` : "No personal-data columns found, nothing to mask. ") + (run.reachedCloud ? "This exact text went to Gemini in the cloud." : "This run stayed on this device.");
     $("sent-wrap").open = Boolean(run.sent && run.reachedCloud);
     $("cols").innerHTML = state.columns.map((c, i) => `

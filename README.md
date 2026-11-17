@@ -59,7 +59,7 @@ All runtime calls are in [`extension/src/ai.js`](extension/src/ai.js), the modul
 
 Routing, privacy and fallback are plain, unit-tested functions:
 
-- `route()` ([tidy.js line 15](extension/src/lib/tidy.js#L15)): **Auto** uses `PREFER_ON_DEVICE` for tables up to 1,500 cells and `PREFER_IN_CLOUD` above that. **On device only** uses `ONLY_ON_DEVICE` (raw values allowed because nothing leaves the browser). **Cloud** uses `ONLY_IN_CLOUD`. Every mode that can reach the cloud has `mask: true`.
+- `route()` ([tidy.js line 15](extension/src/lib/tidy.js#L15)): **Auto** uses `PREFER_ON_DEVICE` for tables up to 1,500 cells and `PREFER_IN_CLOUD` above that. **On device only** uses `ONLY_ON_DEVICE` (raw values allowed because no table data leaves the browser). **Cloud** uses `ONLY_IN_CLOUD`. Every mode that can reach the cloud has `mask: true`.
 - `buildPrompt()` ([tidy.js line 46](extension/src/lib/tidy.js#L46)) masks the flagged columns *before* the prompt text exists. Masks keep the shape (`+00 00 000 0000`, `name@example.com`, `Person Name`) so the model can still type the column.
 - `validateAnswer()` ([hybrid.js line 14](extension/src/lib/hybrid.js#L14)) checks every answer: non-empty, JSON, a title, and exactly one valid entry (index, name, known type, boolean flag) per column of the table.
 - `runHybrid()` ([hybrid.js line 139](extension/src/lib/hybrid.js#L139)): if a `PREFER_ON_DEVICE` answer is empty, not JSON or fails validation, the same already-masked prompt is sent with `ONLY_IN_CLOUD` and the badge gives the reason. A cloud call that fails with a 5xx or a "high demand" answer is tried three times in all (waits of 1 s, then 3 s); a 4xx is not retried. `ONLY_ON_DEVICE` never falls back to the cloud: strict mode is decided first, no model is called unless the browser's `LanguageModel` object exists and reports `available`, and an answer that did not come from the device is thrown away. Without a ready built-in model the page says so and sends nothing.
@@ -119,7 +119,7 @@ Most of the code in this repository was written by an AI coding agent (Aside, an
 
 - The hosted app reads only what you paste or the sample you pick. The extension reads a page only after you click its toolbar button (`activeTab`).
 - On device only mode never sends table data anywhere.
-- In Auto and Cloud mode, columns flagged as personal data are replaced by placeholders before the prompt is built. You can flag or unflag any column, and exports leave flagged columns out by default.
+- In Auto and Cloud mode, columns that the on-device rules flag as personal data are replaced by placeholders before the prompt is built. You can flag or unflag any column by hand: that changes the export, not what the next run sends. Exports leave flagged columns out by default.
 - Nothing is stored except, in the extension, the App Check debug token you paste into Settings.
 
 ## License
