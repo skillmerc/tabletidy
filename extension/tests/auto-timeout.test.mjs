@@ -58,7 +58,7 @@ test.after(() => { globalThis.fetch = realFetch; });
 
 // In node the Firebase AI Logic package loads its node build, which never builds an on-device
 // adapter, so it cannot show the wait. This stand-in model follows the browser build
-// (dist/esm/index.esm.js 13.3.0): callCloudOrDevice (line 2561) and ChromeAdapterImpl.isAvailable
+// (@firebase/ai 3.1.0 in firebase 13.3.0, dist/esm/index.esm.js): callCloudOrDevice (line 2561) and ChromeAdapterImpl.isAvailable
 // (lines 971-1007), which for every mode but ONLY_IN_CLOUD awaits LanguageModel.availability()
 // with no time limit (line 980). Cloud sends are recorded, nothing leaves the process.
 function standInSdk() {
