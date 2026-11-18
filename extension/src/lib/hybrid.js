@@ -186,7 +186,12 @@ export async function runHybrid(plan, promptText, { runPrompt, colCount, status,
   if (strictNow()) { push({ mode: plan.mode, source: "none", ms: 0, ok: false, error: "not sent, On device only is set", threw: false, called: false, blocked: true }); return switched(); }
 
   // ---- Auto and Cloud: every prompt here is already masked (route() sets mask for these plans) ----
-  let mode = plan.mode, fellBack = null, a;
+  // Auto with no ready built-in model: the first call goes straight to the cloud (T8). With
+  // PREFER_ON_DEVICE the SDK asks LanguageModel.availability() itself and waits with no time
+  // limit, so a check that never answers would hold the run forever. ONLY_IN_CLOUD skips that
+  // check, sends the same masked prompt, and is where the SDK sends this status anyway.
+  const skipDevice = plan.mode === "PREFER_ON_DEVICE" && status !== "available";
+  let mode = skipDevice ? "ONLY_IN_CLOUD" : plan.mode, fellBack = null, a;
   for (;;) {
     a = await call(mode);
     if (a.called && a.source !== "on_device") sends++;

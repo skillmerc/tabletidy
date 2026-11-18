@@ -41,7 +41,7 @@ const fake = (script) => {
 
 test("prefer on device: a valid on-device answer is used, no cloud call", async () => {
   const f = fake({ PREFER_ON_DEVICE: { text: good(), source: "on_device", ms: 900 } });
-  const r = await runHybrid(route(10, 3), "p", { runPrompt: f.runPrompt, colCount: 3 });
+  const r = await runHybrid(route(10, 3), "p", { runPrompt: f.runPrompt, colCount: 3, status: "available" });
   assert.deepEqual(f.calls, ["PREFER_ON_DEVICE"]);
   assert.equal(r.source, "on_device");
   assert.match(r.reason, /Small table/);
@@ -51,7 +51,7 @@ test("prefer on device: a valid on-device answer is used, no cloud call", async 
 test("prefer on device: stub echo / empty / invalid answers fall back to the cloud with the reason", async () => {
   for (const [bad, why] of [[STUB_ECHO, "not JSON"], ["", "empty answer"], [good(2), "1 of 3 columns missing"]]) {
     const f = fake({ PREFER_ON_DEVICE: { text: bad, source: "on_device", ms: 800 }, ONLY_IN_CLOUD: { text: good(), source: "in_cloud", ms: 2000 } });
-    const r = await runHybrid(route(10, 3), "p", { runPrompt: f.runPrompt, colCount: 3 });
+    const r = await runHybrid(route(10, 3), "p", { runPrompt: f.runPrompt, colCount: 3, status: "available" });
     assert.deepEqual(f.calls, ["PREFER_ON_DEVICE", "ONLY_IN_CLOUD"]);
     assert.equal(r.source, "in_cloud");
     assert.equal(r.ms, 2000);
@@ -62,12 +62,13 @@ test("prefer on device: stub echo / empty / invalid answers fall back to the clo
 
 test("prefer on device: an on-device crash also falls back; SDK-side fallback is labelled", async () => {
   const f = fake({ PREFER_ON_DEVICE: new Error("session failed"), ONLY_IN_CLOUD: { text: good(), source: "in_cloud", ms: 1500 } });
-  const r = await runHybrid(route(10, 3), "p", { runPrompt: f.runPrompt, colCount: 3 });
+  const r = await runHybrid(route(10, 3), "p", { runPrompt: f.runPrompt, colCount: 3, status: "available" });
   assert.equal(r.source, "in_cloud");
   assert.equal(r.reason, "On-device run failed, cloud fallback"); // the raw error text is no longer shown
-  const g = fake({ PREFER_ON_DEVICE: { text: good(), source: "in_cloud", ms: 1500 } });
+  // Model not ready (T8): the first call goes straight to the cloud, and the reason says why.
+  const g = fake({ ONLY_IN_CLOUD: { text: good(), source: "in_cloud", ms: 1500 } });
   const r2 = await runHybrid(route(10, 3), "p", { runPrompt: g.runPrompt, colCount: 3, status: "downloadable" });
-  assert.deepEqual(g.calls, ["PREFER_ON_DEVICE"]);
+  assert.deepEqual(g.calls, ["ONLY_IN_CLOUD"]);
   assert.equal(r2.reason, "Gemini Nano is not ready in this browser (downloadable), cloud fallback");
 });
 
@@ -88,7 +89,7 @@ test("cloud failures keep the device rules and carry a plain reason, never the r
   assert.ok(!JSON.stringify(r).includes("token rejected"));
   assert.equal(f.calls.length, 1, "an error that is not a 5xx is not retried");
   const g = fake({ PREFER_ON_DEVICE: { text: "", source: "on_device", ms: 5 }, ONLY_IN_CLOUD: { text: "oops", source: "in_cloud", ms: 5 } });
-  const r2 = await runHybrid(route(10, 3), "p", { runPrompt: g.runPrompt, colCount: 3 });
+  const r2 = await runHybrid(route(10, 3), "p", { runPrompt: g.runPrompt, colCount: 3, status: "available" });
   assert.equal(r2.source, "local");
   assert.match(r2.reason, /cloud answer failed validation, kept device rules/);
 });

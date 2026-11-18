@@ -119,19 +119,23 @@ test("REPRODUCTION of 17 Nov: the cloud answers HTTP 500 'high demand' once on C
   }
 });
 
-// Reviewer follow-up T2 (17 Nov 2026): the hard cap. With no model object the SDK sends the
-// PREFER_ON_DEVICE call to the cloud. If that send fails with an error classifyError cannot place
-// (no status, no "Error fetching"), the run used to fall back and then try the cloud three more times.
-test("small table, Auto, first cloud send fails with an unclassified error, then always 500: exactly 3 cloud sends", async () => {
+// Reviewer follow-up T2 (17 Nov 2026): the hard cap. A PREFER_ON_DEVICE call can reach the cloud
+// (the SDK sends it there when it decides the device cannot take it). If that send fails with an
+// error classifyError cannot place (no status, no "Error fetching"), the run used to fall back and
+// then try the cloud three more times. Since T8 a small Auto table with no ready model starts with
+// ONLY_IN_CLOUD, so that path is checked with the status "available" and a scripted model caller.
+test("small table, Auto, first send (may have reached the cloud) fails with an unclassified error, then always 500: exactly 3 cloud sends", async () => {
   assert.equal(H.classifyError(new Error("stream closed")).kind, "other", "the first failure is one classifyError cannot place");
-  const sdk = fakeSdk({ api: "none", cloud: [() => { throw new Error("stream closed"); }, 500] });
-  const { out, waits, lines } = await run(ORDERS(), "auto", sdk);
-  assert.equal(out.run.attempts[0].mode, "PREFER_ON_DEVICE", "a small table in Auto starts with PREFER_ON_DEVICE");
+  const calls = [], waits = [], lines = [];
+  let n = 0;
+  const runPrompt = async (mode, text) => { calls.push([mode, text]); if (n++ === 0) throw new Error("stream closed"); throw sdkError(500); };
+  const table = ORDERS();
+  const out = await H.tidyTable(table, "auto", { runPrompt, deviceStatus: async () => "available", sleep: async (ms) => { waits.push(ms); }, onRetry: (r) => lines.push(r.text) });
+  assert.equal(out.run.attempts[0].mode, "PREFER_ON_DEVICE", "a small table in Auto with a ready model starts with PREFER_ON_DEVICE");
   assert.equal(out.run.attempts[0].kind, "other");
-  assert.equal(sdk.cloudCalls.length, 3, `${sdk.cloudCalls.length} cloud sends in one run, the cap is ${H.MAX_CLOUD_TRIES}`);
-  assert.equal(sdk.deviceCalls.length, 0);
-  assert.equal(sdk.maxInFlight, 1, "one at a time");
-  assert.equal(new Set(sdk.cloudCalls).size, 1, "every send is the same masked prompt");
+  assert.equal(calls.length, 3, `${calls.length} sends in one run, the cap is ${H.MAX_CLOUD_TRIES}`);
+  assert.deepEqual(calls.map(([m]) => m), ["PREFER_ON_DEVICE", "ONLY_IN_CLOUD", "ONLY_IN_CLOUD"]);
+  assert.equal(new Set(calls.map(([, t]) => t)).size, 1, "every send is the same masked prompt");
   assert.deepEqual(waits, [1000]);
   assert.deepEqual(lines, ["The cloud model is busy. Trying again (3 of 3)."]);
   assert.equal(out.run.notice, "The cloud model was still busy on the last of this run's three tries, so the columns below come from the rules on this device only.");
@@ -139,6 +143,15 @@ test("small table, Auto, first cloud send fails with an unclassified error, then
   assert.equal(out.run.source, "local");
   assert.equal(out.run.action, "retry");
   assert.ok(noLeakText(shown(out.run)), shown(out.run));
+  // With no model object (T8): one cloud send; an error that is not a 5xx is not retried.
+  const sdk = fakeSdk({ api: "none", cloud: [() => { throw new Error("stream closed"); }, 500] });
+  const { out: o2 } = await run(ORDERS(), "auto", sdk);
+  assert.equal(o2.run.attempts[0].mode, "ONLY_IN_CLOUD");
+  assert.equal(sdk.cloudCalls.length, 1);
+  assert.equal(sdk.deviceCalls.length, 0);
+  assert.equal(o2.run.notice, H.MESSAGES.cloudOther);
+  assert.equal(o2.run.source, "local");
+  assert.ok(noLeakText(shown(o2.run)), shown(o2.run));
 });
 
 // The same cap when a ready built-in model's call throws: that call cannot be shown to have stayed
